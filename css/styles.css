@@ -1,0 +1,482 @@
+:root {
+    /* PRIMARY (INDIGO BASE) */
+    --primary: #4f46e5;
+    --primary-hover: #4338ca;
+    --primary-light: #eef2ff;
+    --primary-shadow: rgba(79, 70, 229, 0.2);
+
+    /* SEMANTIC COLORS */
+    --success: #10b981;
+    --success-light: #ecfdf5;
+    --warning: #f59e0b;
+    --warning-light: #fffbeb;
+    --danger: #ef4444;
+    --danger-light: #fef2f2;
+    --info: #3b82f6;
+
+    /* NEUTRAL / SLATE SCALE */
+    --slate-50: #f8fafc;
+    --slate-100: #f1f5f9;
+    --slate-200: #e2e8f0;
+    --slate-300: #cbd5e1;
+    --slate-400: #94a3b8;
+    --slate-500: #64748b;
+    --slate-600: #475569;
+    --slate-700: #334155;
+    --slate-800: #1e293b;
+    --slate-900: #0f172a;
+
+    /* SURFACES */
+    --color-bg-main: var(--slate-50);
+    --color-admin-bg: var(--slate-900);
+
+    /* TYPOGRAPHY */
+    --font-family-base: 'Outfit', sans-serif;
+    --border-radius-base: 1rem;
+}
+
+body {
+    font-family: var(--font-family-base);
+    background-color: var(--color-bg-main);
+    color: var(--color-text-base);
+    scroll-behavior: smooth;
+}
+
+.btn-primary {
+    background-color: var(--color-primary);
+    transition: all 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: var(--color-primary-hover);
+}
+
+.sidebar {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 16rem;
+}
+
+.sidebar.collapsed {
+    width: 4.5rem;
+}
+
+.sidebar.collapsed .nav-label,
+.sidebar.collapsed .branding-text {
+    display: none;
+}
+
+.sidebar.collapsed .sidebar-header {
+    padding-left: 0;
+    padding-right: 0;
+    justify-content: center;
+}
+
+.sidebar.collapsed nav {
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+}
+
+.sidebar.collapsed button {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+    gap: 0;
+}
+
+.sidebar.collapsed .sidebar-footer {
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+}
+
+/* Reduce spacing for 'Ver Site' in slim mode */
+.sidebar.collapsed .mb-4 {
+    margin-bottom: 0.5rem;
+}
+
+/* MOBILE SIDEBAR OVERRIDES (Synced with Tailwind 'lg' 1024px) */
+@media (max-width: 1024px) {
+    .sidebar {
+        position: fixed;
+        height: 100vh;
+        z-index: 60;
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1);
+        width: 16rem;
+        transform: translateX(0);
+        left: 0;
+    }
+
+    .sidebar.collapsed {
+        display: none;
+        pointer-events: none;
+    }
+}
+
+.icon-wrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-width: 1.25rem;
+    min-height: 1.25rem;
+}
+
+.glass {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.hero-gradient {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.4) 0%, rgba(15, 23, 42, 0.75) 100%);
+}
+
+.admin-theme header {
+    border-top: 4px solid var(--color-primary);
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+/* HERO ANIMATIONS */
+.slide-enter-active,
+.slide-leave-active {
+    transition: transform 0.8s ease-in-out, opacity 0.8s;
+}
+
+.slide-enter-from {
+    transform: translateX(20%);
+    opacity: 0;
+}
+
+.slide-leave-to {
+    transform: translateX(-20%);
+    opacity: 0;
+}
+
+.zoom-enter-active,
+.zoom-leave-active {
+    transition: transform 1.5s ease, opacity 1.5s;
+}
+
+.zoom-enter-from,
+.zoom-leave-to {
+    transform: scale(1.1);
+    opacity: 0;
+}
+
+/* KEN BURNS ANIMATION */
+@keyframes kenBurns {
+    0% {
+        transform: scale(1);
+    }
+
+    100% {
+        transform: scale(1.15);
+    }
+}
+
+.ken-burns {
+    animation: kenBurns 8s ease-out forwards;
+    transform-origin: center center;
+}
+
+
+/* CUSTOM SCROLLBAR (PREMIUM) */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(79, 70, 229, 0.1);
+    border-radius: 10px;
+    transition: background 0.3s;
+}
+
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: rgba(79, 70, 229, 0.25);
+}
+
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(79, 70, 229, 0.2) transparent;
+    overflow-x: auto;
+}
+
+/* GLOBAL NAV STYLES */
+nav a,
+nav button {
+    text-transform: uppercase !important;
+}
+
+/* COMPACT MODE (Class-based on body) */
+.is-compact .h-20 {
+    height: 3.5rem !important;
+}
+
+.is-compact .p-8 {
+    padding: 1.25rem !important;
+}
+
+.is-compact .px-8 {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+}
+
+.is-compact .py-8 {
+    padding-top: 1.25rem !important;
+    padding-bottom: 1.25rem !important;
+}
+
+.is-compact .sidebar-header,
+.is-compact header {
+    height: 3.5rem !important;
+    padding: 0.5rem 1.25rem !important;
+}
+
+.is-compact nav.glass div.py-4 {
+    padding-top: 0.5rem !important;
+    padding-bottom: 0.5rem !important;
+}
+
+.is-compact .py-24 {
+    padding-top: 2.5rem !important;
+    padding-bottom: 2.5rem !important;
+}
+
+.is-compact .py-32 {
+    padding-top: 3.5rem !important;
+    padding-bottom: 3.5rem !important;
+}
+
+.is-compact .mb-16 {
+    margin-bottom: 1rem !important;
+}
+
+.is-compact .text-4xl {
+    font-size: 1.5rem !important;
+    line-height: 2rem !important;
+}
+
+.is-compact h2.text-xl {
+    font-size: 1rem !important;
+}
+
+.is-compact .text-3xl {
+    font-size: 1.25rem !important;
+}
+
+.is-compact td,
+.is-compact th {
+    padding-top: 0.4rem !important;
+    padding-bottom: 0.4rem !important;
+    font-size: 0.75rem !important;
+}
+
+/* TRANSITIONS FOR COMPACT MODE */
+.h-20,
+.p-8,
+.px-8,
+.py-8,
+.sidebar-header,
+header,
+nav.glass div.py-4,
+.py-24,
+.py-32,
+.mb-16,
+.text-4xl,
+h2.text-xl,
+.text-3xl,
+td,
+th {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[v-cloak] {
+    display: none;
+}
+
+/* AUDIT: STANDARDIZED CLASSES */
+.card-processing {
+    opacity: 0.65;
+    pointer-events: none;
+    cursor: wait;
+}
+
+.content-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: grayscale(0.2);
+}
+
+.system-toast {
+    min-width: 300px;
+}
+
+.lucide-wrapper {
+    line-height: 0;
+}
+
+.lucide-icon {
+    width: 100%;
+    height: 100%;
+}
+
+/* RESPONSIVE DROPDOWNS - Action Sheet Style */
+.dropdown-menu-responsive {
+    position: absolute;
+    top: 100%;
+    z-index: 100;
+    margin-top: 0.5rem;
+    transition: all 0.2s ease;
+    right: 0;
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+}
+
+/* Menu flutuante do usuário - Desktop */
+@media (min-width: 1025px) {
+    .admin-user-menu-floating {
+        position: fixed !important;
+        top: 6rem !important;
+        right: 1.5rem !important;
+        left: auto !important;
+        transform: none !important;
+        width: auto !important;
+        min-width: 256px !important;
+        max-height: calc(100vh - 8rem) !important;
+        animation: fadeIn 0.2s ease forwards !important;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@media (max-width: 1024px) {
+    .dropdown-menu-responsive {
+        position: fixed !important;
+        bottom: 1rem !important;
+        /* Mais perto da base */
+        left: 50% !important;
+        right: auto !important;
+        top: auto !important;
+        transform: translateX(-50%) !important;
+        width: calc(100% - 1.5rem) !important;
+        /* Margens de 0.75rem nas laterais */
+        max-width: 520px !important;
+        max-height: calc(100vh - 4rem) !important;
+        /* Scroll interno se necessário */
+        overflow-y: auto !important;
+        margin: 0 !important;
+        animation: slideUpActionSheet 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+        border-radius: 2rem !important;
+        box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5) !important;
+        z-index: 10001 !important;
+        visibility: visible !important;
+        display: block !important;
+        opacity: 1 !important;
+        border: 1px solid rgba(0, 0, 0, 0.05) !important;
+        /* Sutil borda para contraste */
+    }
+
+    .admin-user-menu-floating {
+        bottom: auto !important;
+        top: auto !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) translateY(-150%) !important;
+        width: calc(100% - 1.5rem) !important;
+        max-width: 520px !important;
+        max-height: calc(100vh - 8rem) !important;
+        margin: 0 !important;
+        animation: slideDownDropdown 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    }
+
+    .dropdown-menu-right,
+    .dropdown-menu-left {
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) !important;
+        /* Force neutral */
+    }
+
+    .dropdown-backdrop-responsive {
+        background-color: rgba(0, 0, 0, 0.5) !important;
+        backdrop-filter: blur(8px) !important;
+        z-index: 10000 !important;
+        animation: fadeInBackdrop 0.3s ease-out forwards !important;
+        position: fixed !important;
+        inset: 0 !important;
+    }
+}
+
+@keyframes slideUpActionSheet {
+    from {
+        transform: translateX(-50%) translateY(100%) scale(0.95) !important;
+        opacity: 0 !important;
+    }
+
+    to {
+        transform: translateX(-50%) translateY(0) scale(1) !important;
+        opacity: 1 !important;
+    }
+}
+
+@keyframes slideDownDropdown {
+    from {
+        transform: translateX(-50%) translateY(-150%) scale(0.95) !important;
+        opacity: 0 !important;
+    }
+
+    to {
+        transform: translateX(-50%) translateY(-150%) scale(1) !important;
+        opacity: 1 !important;
+    }
+}
+
+@keyframes fadeInBackdrop {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.dropdown-menu-right {
+    right: 0;
+}
+
+.dropdown-menu-left {
+    left: 0;
+}
+
+@media (max-width: 640px) {
+    .dropdown-menu-right {
+        right: auto !important;
+    }
+
+    .dropdown-menu-left {
+        left: auto !important;
+    }
+}
