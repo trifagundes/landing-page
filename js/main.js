@@ -20,6 +20,7 @@ const BasePublicArchive = window.BasePublicArchive;
 const SettingsPanel = window.SettingsPanel;
 const BaseConfirmDialog = window.BaseConfirmDialog;
 const DropdownMenu = window.DropdownMenu;
+const AdminUserMenu = window.AdminUserMenu;
 
 createApp({
     components: {
@@ -32,7 +33,8 @@ createApp({
         'base-public-archive': BasePublicArchive,
         'settings-panel': SettingsPanel,
         'base-confirm-dialog': BaseConfirmDialog,
-        'dropdown-menu': DropdownMenu
+        'dropdown-menu': DropdownMenu,
+        'admin-user-menu': AdminUserMenu
     },
     setup() {
         // 1. Initialize Composables
@@ -43,7 +45,7 @@ createApp({
 
         // 2. Initialize Auth Guards & Hero Slider
         const authGuards = window.useAuthGuards(auth, router, notifications);
-        const heroSlider = window.useHeroSlider(events, settings);
+        const heroSlider = window.useHeroSlider(events, settings, ui);
 
         // STICKY NAVBAR LOGIC
         const isScrolled = ref(false);

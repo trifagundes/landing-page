@@ -14,6 +14,7 @@ window.DropdownMenu = {
         }
     },
     emits: ['update:show'],
+    inheritAttrs: false,
     template: `
         <!-- Backdrop -->
         <div v-if="show" 
@@ -22,6 +23,7 @@ window.DropdownMenu = {
         
         <!-- Menu -->
         <div v-if="show" 
+            v-bind="$attrs"
             class="dropdown-menu-responsive dropdown-menu-right bg-white rounded-xl shadow-xl border border-brand-100 overflow-hidden z-[10001]">
             <!-- Header -->
             <div v-if="title" class="p-3 border-b border-brand-50 bg-brand-50/50">

@@ -63,6 +63,18 @@ window.useAuth = function (router, notifications) {
             localStorage.removeItem('auth_token');
             notifications.add("Logout realizado com sucesso.");
             router.pushContext('public');
+        },
+
+        can(permission) {
+            if (!this.isAuthenticated || !this.user) return false;
+            const PERMISSIONS = {
+                'dev': ['view_dashboard', 'manage_users', 'manage_events', 'manage_settings', 'view_dev_tools', 'manage_system'],
+                'admin': ['view_dashboard', 'manage_users', 'manage_events', 'manage_settings'],
+                'editor': ['view_dashboard', 'manage_events'],
+                'user': ['view_dashboard']
+            };
+            const rolePerms = PERMISSIONS[this.user.role] || [];
+            return rolePerms.includes(permission);
         }
     });
 
@@ -70,18 +82,8 @@ window.useAuth = function (router, notifications) {
         auth.logout();
     }
 
-    const PERMISSIONS = {
-        'dev': ['view_dashboard', 'manage_users', 'manage_events', 'manage_settings', 'view_dev_tools', 'manage_system'],
-        'admin': ['view_dashboard', 'manage_users', 'manage_events', 'manage_settings'],
-        'editor': ['view_dashboard', 'manage_events'],
-        'user': ['view_dashboard']
-    };
-
-    const can = (permission) => {
-        if (!auth.isAuthenticated || !auth.user) return false;
-        const rolePerms = PERMISSIONS[auth.user.role] || [];
-        return rolePerms.includes(permission);
-    };
+    // Wrapper para can que preserva o contexto
+    const can = (permission) => auth.can(permission);
 
     return { auth, can };
 };

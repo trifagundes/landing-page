@@ -159,19 +159,26 @@
                                     </div>
                                 </button>
 
-                                <!-- CONTEXTUAL USER MENU (PÚBLICO) -->
-                                <dropdown-menu v-if="auth.isAuthenticated && auth.user" 
-                                    :show="ui.userMenuOpen"
-                                    @update:show="ui.userMenuOpen = $event">
-                                    <!-- User Identity Header -->
-                                    <div class="px-5 py-4 bg-brand-50/50 border-b border-brand-100 flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold border border-white shrink-0 relative">
-                                            <img v-if="auth.user.photo" :src="auth.user.photo" class="w-full h-full object-cover rounded-full">
+                                <!-- USER MENU (Posicionado relativamente ao avatar) -->
+                                <dropdown-menu
+                                    v-if="ui.userMenuOpen && auth.isAuthenticated && router.currentContext === 'public'"
+                                    :show="ui.userMenuOpen" @update:show="ui.userMenuOpen = $event"
+                                    class="public-user-menu-inline md:w-64 z-[10001]">
+
+                                    <!-- Header: User Identity -->
+                                    <div
+                                        class="px-5 py-4 bg-brand-50/50 border-b border-brand-100 flex items-center gap-3">
+                                        <div
+                                            class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold border border-white shrink-0 relative">
+                                            <img v-if="auth.user.photo" :src="auth.user.photo"
+                                                class="w-full h-full object-cover rounded-full">
                                             <span v-else>{{ auth.user.name.charAt(0) }}</span>
                                         </div>
                                         <div class="flex flex-col min-w-0">
-                                            <span class="text-sm font-bold text-brand-800 truncate text-left">{{ auth.user.name }}</span>
-                                            <span class="text-[10px] text-brand-400 font-medium truncate text-left">{{ auth.user.email }}</span>
+                                            <span class="text-sm font-bold text-brand-800 truncate text-left">{{
+                                                auth.user.name }}</span>
+                                            <span class="text-[10px] text-brand-400 font-medium truncate text-left">{{
+                                                auth.user.email }}</span>
                                         </div>
                                     </div>
 
@@ -184,7 +191,8 @@
                                             Painel Administrativo
                                         </div>
                                     </button>
-                                    <div v-if="['admin', 'dev', 'editor'].includes(auth.user?.role)" class="h-px bg-brand-50 my-0.5 mx-2"></div>
+                                    <div v-if="['admin', 'dev', 'editor'].includes(auth.user?.role)"
+                                        class="h-px bg-brand-50 my-0.5 mx-2"></div>
 
                                     <button @click="modal.open('users', auth.user); ui.userMenuOpen = false"
                                         class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-brand-50 text-brand-600 font-bold text-xs flex items-center gap-3 transition-colors cursor-pointer">
@@ -195,11 +203,14 @@
                                     <button @click="settings.isCompactMode = !settings.isCompactMode"
                                         class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-brand-50 text-brand-600 font-bold text-xs flex items-center justify-between group transition-colors cursor-pointer">
                                         <div class="flex items-center gap-3">
-                                            <base-icon :name="settings.isCompactMode ? 'maximize' : 'minimize'" icon-class="w-4 h-4 text-brand-400 group-hover:text-primary"></base-icon>
+                                            <base-icon :name="settings.isCompactMode ? 'maximize' : 'minimize'"
+                                                icon-class="w-4 h-4 text-brand-400 group-hover:text-primary"></base-icon>
                                             <span>Modo Compacto</span>
                                         </div>
-                                        <div class="w-8 h-4 rounded-full relative transition-colors" :class="settings.isCompactMode ? 'bg-primary' : 'bg-brand-200'">
-                                            <div class="absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all" :style="{ left: settings.isCompactMode ? '1.1rem' : '0.15rem' }"></div>
+                                        <div class="w-8 h-4 rounded-full relative transition-colors"
+                                            :class="settings.isCompactMode ? 'bg-primary' : 'bg-brand-200'">
+                                            <div class="absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all"
+                                                :style="{ left: settings.isCompactMode ? '1.1rem' : '0.15rem' }"></div>
                                         </div>
                                     </button>
 
@@ -776,6 +787,13 @@
                 <div class="text-[10px] font-bold text-brand-500 uppercase tracking-widest px-3 mb-2 nav-label">
                     Gerenciamento</div>
 
+                <!-- DEBUG INFO -->
+                <div class="text-[9px] text-danger bg-danger-light p-2 rounded mx-3 mb-2">
+                    <div>Role: {{ auth.user?.role }}</div>
+                    <div>manage_events: {{ can('manage_events') }}</div>
+                    <div>manage_users: {{ can('manage_users') }}</div>
+                </div>
+
                 <button @click="nav('dashboard')"
                     :class="router.current === 'dashboard' ? 'bg-primary/10 text-primary' : 'text-brand-400 hover:bg-brand-800 hover:text-white'"
                     class="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all group mb-1">
@@ -900,6 +918,15 @@
                 </div>
             </header>
 
+            <!-- ADMIN USER MENU (Componente específico do admin) -->
+            <admin-user-menu v-if="auth.isAuthenticated && auth.user" :show="ui.userMenuOpen" :user="auth.user"
+                :current-context="router.currentContext" :is-compact-mode="settings.isCompactMode"
+                @close="ui.userMenuOpen = false" @navigate-context="navContext"
+                @open-profile="modal.open('users', auth.user); ui.userMenuOpen = false"
+                @toggle-compact="settings.isCompactMode = !settings.isCompactMode"
+                @logout="auth.logout(); ui.userMenuOpen = false">
+            </admin-user-menu>
+
             <!-- MAINTENANCE ALERT BANNER -->
             <div v-if="settings.isMaintenance"
                 class="bg-warning-light border-b border-warning-light px-8 py-3 flex items-center justify-center gap-3 text-warning animate-in slide-in-from-top duration-300 sticky top-20 z-30">
@@ -960,6 +987,111 @@
                             <div>
                                 <div class="text-2xl font-bold text-brand-800">{{ publicClipping.length }}</div>
                                 <div class="text-xs font-bold text-brand-400 uppercase">Clipping</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions & Recent Events -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+                        <!-- Quick Actions -->
+                        <div class="bg-white rounded-[2rem] border border-brand-100 shadow-sm p-6">
+                            <h3 class="text-lg font-bold text-brand-800 mb-4 flex items-center gap-2">
+                                <base-icon name="zap" icon-class="w-5 h-5 text-primary"></base-icon>
+                                Ações Rápidas
+                            </h3>
+                            <div class="space-y-2">
+                                <button @click="modal.open('events')"
+                                    class="w-full text-left px-4 py-3 rounded-xl hover:bg-brand-50 text-brand-600 font-bold text-sm flex items-center gap-3 transition-colors">
+                                    <base-icon name="plus-circle" icon-class="w-4 h-4 text-primary"></base-icon>
+                                    Novo Evento
+                                </button>
+                                <button @click="modal.open('users')"
+                                    class="w-full text-left px-4 py-3 rounded-xl hover:bg-brand-50 text-brand-600 font-bold text-sm flex items-center gap-3 transition-colors">
+                                    <base-icon name="user-plus" icon-class="w-4 h-4 text-success"></base-icon>
+                                    Novo Usuário
+                                </button>
+                                <button @click="modal.open('clipping')"
+                                    class="w-full text-left px-4 py-3 rounded-xl hover:bg-brand-50 text-brand-600 font-bold text-sm flex items-center gap-3 transition-colors">
+                                    <base-icon name="newspaper" icon-class="w-4 h-4 text-warning"></base-icon>
+                                    Novo Clipping
+                                </button>
+                                <button @click="router.push('settings')"
+                                    class="w-full text-left px-4 py-3 rounded-xl hover:bg-brand-50 text-brand-600 font-bold text-sm flex items-center gap-3 transition-colors">
+                                    <base-icon name="settings" icon-class="w-4 h-4 text-brand-400"></base-icon>
+                                    Configurações
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Recent Events -->
+                        <div class="lg:col-span-2 bg-white rounded-[2rem] border border-brand-100 shadow-sm p-6">
+                            <h3 class="text-lg font-bold text-brand-800 mb-4 flex items-center gap-2">
+                                <base-icon name="calendar" icon-class="w-5 h-5 text-primary"></base-icon>
+                                Eventos Recentes
+                            </h3>
+                            <div v-if="activeEvents.length > 0" class="space-y-3">
+                                <div v-for="event in activeEvents.slice(0, 3)" :key="event.id"
+                                    @click="modal.open('events', event)"
+                                    class="flex items-center gap-4 p-3 rounded-xl hover:bg-brand-50 cursor-pointer transition-colors">
+                                    <div class="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-brand-100">
+                                        <img v-if="event.image" :src="event.image" class="w-full h-full object-cover">
+                                        <div v-else
+                                            class="w-full h-full flex items-center justify-center text-brand-400">
+                                            <base-icon name="calendar" icon-class="w-6 h-6"></base-icon>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-sm font-bold text-brand-800 truncate">{{ event.title }}</div>
+                                        <div class="text-xs text-brand-400 font-medium">{{
+                                            formatters.formatDate(event.date) }}
+                                        </div>
+                                    </div>
+                                    <div class="text-xs font-bold text-primary px-3 py-1 rounded-lg bg-primary-light">
+                                        {{ event.porte || 'Local' }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else class="text-center py-8 text-brand-400">
+                                <base-icon name="calendar-x" icon-class="w-12 h-12 mx-auto mb-2 opacity-50"></base-icon>
+                                <p class="text-sm">Nenhum evento encontrado</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Users Overview -->
+                    <div class="bg-white rounded-[2rem] border border-brand-100 shadow-sm p-6 mt-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-brand-800 flex items-center gap-2">
+                                <base-icon name="users" icon-class="w-5 h-5 text-success"></base-icon>
+                                Usuários do Sistema
+                            </h3>
+                            <button @click="router.push('users')"
+                                class="text-xs font-bold text-primary hover:text-primary-dark transition-colors">
+                                Ver todos →
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="p-4 rounded-xl bg-brand-50 text-center">
+                                <div class="text-2xl font-bold text-brand-800">{{ users.length }}</div>
+                                <div class="text-xs text-brand-400 font-medium uppercase mt-1">Total</div>
+                            </div>
+                            <div class="p-4 rounded-xl bg-danger-light text-center">
+                                <div class="text-2xl font-bold text-danger">
+                                    {{ users.filter(u => u.role === 'dev').length }}
+                                </div>
+                                <div class="text-xs text-danger font-medium uppercase mt-1">Desenvolvedores</div>
+                            </div>
+                            <div class="p-4 rounded-xl bg-success-light text-center">
+                                <div class="text-2xl font-bold text-success">
+                                    {{ users.filter(u => u.role === 'admin').length }}
+                                </div>
+                                <div class="text-xs text-success font-medium uppercase mt-1">Admins</div>
+                            </div>
+                            <div class="p-4 rounded-xl bg-warning-light text-center">
+                                <div class="text-2xl font-bold text-warning">
+                                    {{ users.filter(u => u.role === 'editor').length }}
+                                </div>
+                                <div class="text-xs text-warning font-medium uppercase mt-1">Editores</div>
                             </div>
                         </div>
                     </div>
@@ -1463,61 +1595,7 @@
         @close="mediaModal.close()"></base-media-modal>
 
     <!-- BACKDROP TO CLOSE MENU -->
-    <!-- (Backdrop is now handled by dropdown-menu component) -->
-
-    <!-- CONTEXTUAL USER MENU (FLOATING - BOTH PUBLIC & ADMIN) -->
-    <dropdown-menu v-if="ui.userMenuOpen && auth.isAuthenticated" 
-        :show="ui.userMenuOpen"
-        @update:show="ui.userMenuOpen = $event"
-        class="fixed top-24 right-6 md:w-64 z-[10001] pointer-events-auto">
-        <!-- Header: User Identity -->
-        <div class="px-5 py-4 bg-brand-50/50 border-b border-brand-100 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold border border-white shrink-0 relative">
-                <img v-if="auth.user.photo" :src="auth.user.photo" class="w-full h-full object-cover rounded-full">
-                <span v-else>{{ auth.user.name.charAt(0) }}</span>
-            </div>
-            <div class="flex flex-col min-w-0">
-                <span class="text-sm font-bold text-brand-800 truncate text-left">{{ auth.user.name }}</span>
-                <span class="text-[10px] text-brand-400 font-medium truncate text-left">{{ auth.user.email }}</span>
-            </div>
-        </div>
-
-        <!-- Menu Items -->
-        <button v-if="['admin', 'dev', 'editor'].includes(auth.user?.role)"
-            @click="router.currentContext === 'admin' ? navContext('public') : navContext('admin'); ui.userMenuOpen = false"
-            class="w-full text-left px-4 py-2.5 rounded-xl bg-primary-light text-primary font-bold text-xs flex items-center justify-between transition-colors hover:bg-primary/10 group cursor-pointer">
-            <div class="flex items-center gap-3">
-                <base-icon :name="router.currentContext === 'admin' ? 'globe' : 'layout-dashboard'" icon-class="w-4 h-4"></base-icon>
-                {{ router.currentContext === 'admin' ? 'Ver Site Público' : 'Painel Administrativo' }}
-            </div>
-        </button>
-        <div v-if="['admin', 'dev', 'editor'].includes(auth.user?.role)" class="h-px bg-brand-50 my-0.5 mx-2"></div>
-
-        <button @click="modal.open('users', auth.user); ui.userMenuOpen = false"
-            class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-brand-50 text-brand-600 font-bold text-xs flex items-center gap-3 transition-colors cursor-pointer">
-            <base-icon name="user" icon-class="w-4 h-4 text-brand-400"></base-icon>
-            Meu Perfil
-        </button>
-
-        <button @click="settings.isCompactMode = !settings.isCompactMode"
-            class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-brand-50 text-brand-600 font-bold text-xs flex items-center justify-between group transition-colors cursor-pointer">
-            <div class="flex items-center gap-3">
-                <base-icon :name="settings.isCompactMode ? 'maximize' : 'minimize'" icon-class="w-4 h-4 text-brand-400 group-hover:text-primary"></base-icon>
-                <span>Modo Compacto</span>
-            </div>
-            <div class="w-8 h-4 rounded-full relative transition-colors" :class="settings.isCompactMode ? 'bg-primary' : 'bg-brand-200'">
-                <div class="absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all" :style="{ left: settings.isCompactMode ? '1.1rem' : '0.15rem' }"></div>
-            </div>
-        </button>
-
-        <div class="h-px bg-brand-50 my-0.5 mx-2"></div>
-
-        <button @click="auth.logout(); ui.userMenuOpen = false"
-            class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-danger-light text-danger font-bold text-xs flex items-center gap-3 transition-colors cursor-pointer">
-            <base-icon name="log-out" icon-class="w-4 h-4 text-danger"></base-icon>
-            Sair
-        </button>
-    </dropdown-menu>
+    <!-- (Backdrop is now handled by dropdown-menu and admin-user-menu components) -->
 
     <!-- APP ENTRY POINT -->
     <script src="js/utils/AppUtils.js"></script>
@@ -1540,6 +1618,7 @@
     <script src="js/composables/useColumnVisibility.js"></script>
     <script src="js/components/BaseIcon.js"></script>
     <script src="js/components/DropdownMenu.js"></script>
+    <script src="js/components/AdminUserMenu.js"></script>
     <script src="js/components/BaseFormField.js"></script>
     <script src="js/components/BaseDataTable.js"></script>
     <script src="js/components/BaseLoginPage.js"></script>

@@ -347,9 +347,47 @@ th {
 
 /* Menu flutuante do usuário - Desktop */
 @media (min-width: 1025px) {
+
+    /* Posicionamento padrão em desktop para modo público */
+    .dropdown-menu-responsive {
+        position: absolute !important;
+    }
+
+    /* Menu do usuário no modo público (desktop) */
+    .public-user-menu {
+        position: fixed !important;
+        top: 3.5rem !important;
+        /* Próximo ao avatar na navbar sticky */
+        right: 1.5rem !important;
+        left: auto !important;
+        min-width: 256px !important;
+        max-height: calc(100vh - 8rem) !important;
+        animation: fadeIn 0.2s ease forwards !important;
+    }
+
+    /* Menu do usuário no modo público - INLINE (relativo ao avatar) */
+    .public-user-menu-inline {
+        position: absolute !important;
+        top: calc(100% + 0.5rem) !important;
+        bottom: auto !important;
+        /* Abre para baixo do avatar */
+        right: 0 !important;
+        left: auto !important;
+        min-width: 256px !important;
+        max-height: calc(100vh - 5rem) !important;
+        /* Altura máxima para não sair da tela */
+        overflow-y: auto !important;
+        /* Scroll interno se necessário */
+        animation: fadeIn 0.2s ease forwards !important;
+        box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.2) !important;
+        /* Sombra para destacar */
+    }
+
+    /* Menu do usuário no modo admin (desktop) */
     .admin-user-menu-floating {
         position: fixed !important;
-        top: 6rem !important;
+        top: 5.5rem !important;
+        /* Logo abaixo do header do admin (h-20 = 5rem + pequeno espaço) */
         right: 1.5rem !important;
         left: auto !important;
         transform: none !important;
@@ -358,6 +396,12 @@ th {
         max-height: calc(100vh - 8rem) !important;
         animation: fadeIn 0.2s ease forwards !important;
     }
+
+    /* Ajuste para modo compacto no admin */
+    .is-compact .admin-user-menu-floating {
+        top: 4rem !important;
+        /* Ajuste para header compacto (3.5rem + pequeno espaço) */
+    }
 }
 
 @keyframes fadeIn {
@@ -365,9 +409,51 @@ th {
         opacity: 0;
         transform: scale(0.95);
     }
+
     to {
         opacity: 1;
         transform: scale(1);
+    }
+}
+
+/* ====================================
+   ADMIN USER MENU (Desacoplado do menu público)
+   ==================================== */
+
+/* Desktop: Posicionamento fixo no canto superior direito */
+.admin-user-menu {
+    position: fixed;
+    top: 5.5rem;
+    right: 1.5rem;
+    z-index: 10000;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    min-width: 256px;
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+    animation: fadeIn 0.2s ease forwards;
+}
+
+/* Ajuste para modo compacto */
+.is-compact .admin-user-menu {
+    top: 4rem;
+}
+
+/* Mobile: Action sheet estilo no centro inferior */
+@media (max-width: 1024px) {
+    .admin-user-menu {
+        position: fixed !important;
+        top: auto !important;
+        bottom: 1rem !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) !important;
+        width: calc(100% - 1.5rem) !important;
+        max-width: 520px !important;
+        border-radius: 1.5rem !important;
+        animation: slideUpActionSheet 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
     }
 }
 
