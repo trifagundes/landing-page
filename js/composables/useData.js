@@ -1,9 +1,15 @@
 window.useData = function () {
-    const events = Vue.ref([]);
-    const users = Vue.ref([]);
-    const testimonials = Vue.ref([]);
-    const team = Vue.ref([]);
-    const clipping = Vue.ref([]);
+    // Estado centralizado para todas as coleções (Extensível e SRP)
+    const collectionsState = Vue.reactive({
+        events: [],
+        users: [],
+        testimonials: [],
+        team: [],
+        clipping: [],
+        documents: [],
+        oscs: []
+    });
+
     const isLoading = Vue.ref(false);
     const systemInfo = Vue.ref({
         database: { status: 'unknown', url: '#' },
@@ -12,22 +18,39 @@ window.useData = function () {
     });
 
     const loadAll = async () => {
+        const isAuthenticated = !!localStorage.getItem('auth_token_gas');
+        const PUBLIC_COLLECTIONS = ['events', 'testimonials', 'team', 'clipping', 'oscs'];
+
         isLoading.value = true;
         try {
-            const [e, u, t, tm, c, sys] = await Promise.all([
-                window.DataService.list('events'),
-                window.DataService.list('users'),
-                window.DataService.list('testimonials'),
-                window.DataService.list('team'),
-                window.DataService.list('clipping'),
-                window.AppUtils.runBackend('getSystemInfo')
-            ]);
-            events.value = e;
-            users.value = u;
-            testimonials.value = t;
-            team.value = tm;
-            clipping.value = c;
-            if (sys) systemInfo.value = sys;
+            // Determine quais coleções carregar
+            const collectionKeys = Object.keys(collectionsState).filter(key => {
+                return isAuthenticated || PUBLIC_COLLECTIONS.includes(key);
+            });
+
+            // Carrega em paralelo, mas trata falhas individuais
+            const promises = collectionKeys.map(key =>
+                window.DataService.list(key)
+                    .catch(err => {
+                        console.warn(`[useData] Falha ao carregar ${key}:`, err.message);
+                        return []; // Retorna lista vazia em caso de erro individual
+                    })
+            );
+
+            const results = await Promise.all(promises);
+
+            // Atribuição segura
+            collectionKeys.forEach((key, index) => {
+                collectionsState[key] = results[index] || [];
+            });
+
+            // System Info - Apenas se autenticado
+            if (isAuthenticated) {
+                try {
+                    const sys = await window.AppUtils.runBackend('getSystemInfo');
+                    if (sys) systemInfo.value = sys;
+                } catch (e) { }
+            }
         } catch (error) {
             console.error("Erro ao carregar dados:", error);
             if (window.App && window.App.setCriticalError) {
@@ -40,10 +63,16 @@ window.useData = function () {
 
     const processingIds = Vue.ref([]);
 
+    /**
+     * Aplica mudanças locais imediatamente para UX fluida (Optimistic UI)
+     * Agora totalmente agnóstico a qual coleção está sendo alterada.
+     */
     const _applyOptimisticUpdate = (collection, action, payload) => {
-        const map = { events, users, testimonials, team, clipping };
-        const targetRef = map[collection];
-        if (!targetRef) return;
+        const target = collectionsState[collection];
+        if (!target) {
+            console.warn(`[useData] Tentativa de atualizar coleção inexistente: ${collection}`);
+            return;
+        }
 
         let idKey = 'id';
         if (window.SCHEMAS) {
@@ -51,22 +80,21 @@ window.useData = function () {
             if (schema) idKey = schema.idField;
         }
 
-        const current = targetRef.value;
         if (action === 'save') {
-            const idx = current.findIndex(i => i[idKey] == payload[idKey]);
-            if (idx !== -1) current[idx] = payload;
-            else current.push(payload);
+            const idx = target.findIndex(i => i[idKey] == payload[idKey]);
+            if (idx !== -1) target[idx] = payload;
+            else target.push(payload);
         } else if (action === 'delete') {
-            targetRef.value = current.filter(i => i[idKey] != payload);
+            collectionsState[collection] = target.filter(i => i[idKey] != payload);
         } else if (action === 'bulkDelete') {
-            targetRef.value = current.filter(i => !payload.includes(i[idKey]));
+            collectionsState[collection] = target.filter(i => !payload.includes(i[idKey]));
         } else if (action === 'bulkStatus') {
-            targetRef.value.forEach(item => {
+            target.forEach(item => {
                 if (payload.ids.includes(item[idKey])) item.status = payload.status;
             });
         }
-        targetRef.value = [...targetRef.value];
 
+        // Se o usuário logado for alterado, atualiza o useAuth em tempo real
         if (collection === 'users' && action === 'save' && window.App?.auth?.user) {
             if (String(payload[idKey]) === String(window.App.auth.user.id)) {
                 window.App.auth.updateUser(payload);
@@ -75,7 +103,7 @@ window.useData = function () {
     };
 
     const dataActions = {
-        async save(collection, item, options = { showLoading: true }) {
+        async save(collection, item, options = { showLoading: true, silent: false }) {
             if (options.showLoading) isLoading.value = true;
             const idKey = item.id || 'new';
             processingIds.value.push(idKey);
@@ -84,12 +112,18 @@ window.useData = function () {
                 const savedItem = await window.DataService.save(collection, item);
                 _applyOptimisticUpdate(collection, 'save', savedItem);
 
-                window.notify("Sistema", "Salvo com sucesso!", "success");
+                if (!options.silent) {
+                    window.notify("Sistema", "Salvo com sucesso!", "success");
+                }
+
                 if (options.callback && typeof options.callback === 'function') {
                     options.callback(savedItem);
                 }
+                return savedItem;
             } catch (e) {
-                window.notify("Erro", e.message || "Erro ao salvar", "error");
+                if (!options.silent) {
+                    window.notify("Erro", e.message || "Erro ao salvar", "error");
+                }
                 throw e;
             } finally {
                 if (options.showLoading) isLoading.value = false;
@@ -181,5 +215,11 @@ window.useData = function () {
 
     Vue.onMounted(loadAll);
 
-    return { events, users, testimonials, team, clipping, isLoading, systemInfo, dataActions, processingIds };
+    return {
+        ...Vue.toRefs(collectionsState),
+        isLoading,
+        systemInfo,
+        dataActions,
+        processingIds
+    };
 };

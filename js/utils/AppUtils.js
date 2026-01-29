@@ -32,7 +32,7 @@ window.AppUtils = {
     },
     resolveImageUrl(url) {
         if (!url) return '';
-        const driveRegex = /https?:\/\/(?:drive\.google\.com\/(?:file\/d\/|open\?id=)|docs\.google\.com\/uc\?id=)([-a-zA-Z0-9]+)(?:\/view)?/;
+        const driveRegex = /https?:\/\/(?:drive\.google\.com\/(?:file\/d\/|open\?id=)|docs\.google\.com\/uc\?id=)([-a-zA-Z0-9_-]+)/;
         const driveMatch = url.match(driveRegex);
         if (driveMatch && driveMatch[1]) {
             return 'https://lh3.googleusercontent.com/d/' + driveMatch[1];
@@ -58,6 +58,15 @@ window.AppUtils = {
 
         console.log(`[Theme] Tema aplicado: ${theme.label}`);
     },
+    applyDarkMode(isDark) {
+        const root = document.documentElement;
+        if (isDark) {
+            root.classList.add('dark');
+        } else {
+            root.classList.remove('dark');
+        }
+        console.log(`[Theme] Dark Mode: ${isDark ? 'ON' : 'OFF'}`);
+    },
     getBadgeColor(porte) {
         if (porte === 'nacional') return 'bg-primary';
         if (porte === 'regional') return 'bg-info';
@@ -77,49 +86,21 @@ window.AppUtils = {
         return classes;
     },
     async runBackend(funcName, ...args) {
-        console.log(`[AppUtils] Executando ${funcName} localmente.`);
-
         switch (funcName) {
-            case 'login':
-                return await this._mockLogin(args[0], args[1]);
-            case 'logout':
-                LocalStorageDB.removeSession();
-                return true;
-            case 'getData':
-                return LocalStorageDB.getCollection(args[1]);
-            case 'saveData':
-                return LocalStorageDB.saveToCollection(args[1], args[2], args[3] || 'id');
-            case 'deleteData':
-                return LocalStorageDB.removeFromCollection(args[1], args[2], args[3] || 'id');
             case 'getSystemInfo':
+                if (window.GASAPIService && window.GASAPIService.getSystemInfo) {
+                    return await window.GASAPIService.getSystemInfo();
+                }
                 return {
-                    database: { status: 'local', id: 'localStorage', url: '#' },
-                    drive: { status: 'local', id: 'localStorage', url: '#' },
-                    env: { user: 'local@user', scriptId: 'offline' }
+                    database: { status: 'disconnected', id: 'unknown', url: '#' },
+                    drive: { status: 'disconnected', id: 'unknown', url: '#' },
+                    env: { user: 'offline', scriptId: 'offline' }
                 };
             case 'getAppUrl':
                 return window.location.href;
-            case 'resetSystemDatabase':
-                LocalStorageDB.resetDB();
-                return { success: true, message: 'Banco de dados local resetado.' };
             default:
-                console.warn(`[AppUtils] Método ${funcName} não implementado.`);
-                return { success: false, message: `Método ${funcName} não implementado.` };
+                console.warn(`[AppUtils] Método ${funcName} não implementado ou movido para GASAPIService.`);
+                return { success: false, message: `Método ${funcName} não disponível localmente.` };
         }
-    },
-    async _mockLogin(email, password) {
-        const users = LocalStorageDB.getCollection('users');
-        const inputHash = await LocalStorageDB.computeHash(password);
-        const userFound = users.find(u =>
-            u.email.toLowerCase() === email.toLowerCase() &&
-            u.password === inputHash &&
-            u.status === 'active'
-        );
-        if (userFound) {
-            const { password, ...userWithoutPassword } = userFound;
-            const token = LocalStorageDB.createSession(userWithoutPassword);
-            return { success: true, token, user: userWithoutPassword };
-        }
-        return { success: false, message: 'Credenciais inválidas.' };
     }
 };

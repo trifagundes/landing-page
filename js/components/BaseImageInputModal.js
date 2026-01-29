@@ -1,5 +1,8 @@
 window.BaseImageInputModal = {
-    components: { 'base-icon': window.BaseIcon },
+    components: {
+        'base-icon': window.BaseIcon,
+        'base-image-preview': window.BaseImagePreview
+    },
     props: ['show', 'url', 'title'],
     emits: ['close', 'save'],
     data() {
@@ -80,6 +83,18 @@ window.BaseImageInputModal = {
                                 <base-icon name="link" icon-class="w-4 h-4 text-brand-400 absolute left-3.5 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors"></base-icon>
                             </div>
                             <p class="text-[10px] text-brand-400 pl-1">Suporta links diretos, Google Drive, e Imgur.</p>
+                        </div>
+
+                        <!-- LIVE PREVIEW AREA -->
+                        <div class="mt-8">
+                            <label class="text-xs font-bold text-brand-400 uppercase tracking-widest pl-1 mb-2 block">Pré-visualização</label>
+                            <div class="w-full h-48 rounded-2xl border-2 border-dashed border-brand-200 bg-brand-50 overflow-hidden relative">
+                                <base-image-preview 
+                                    :src="previewUrl" 
+                                    fallback-icon="camera"
+                                    img-class="w-full h-full object-contain">
+                                </base-image-preview>
+                            </div>
                         </div>
                     </div>
                     <div class="px-6 py-4 bg-brand-50 border-t border-brand-100 flex justify-end gap-3">

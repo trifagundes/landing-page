@@ -28,11 +28,34 @@
 
     /* SURFACES */
     --color-bg-main: var(--slate-50);
-    --color-admin-bg: var(--slate-900);
+    --color-surface: #ffffff;
+    --color-border: var(--slate-100);
+    --color-text-base: var(--slate-900);
+    --color-text-muted: var(--slate-400);
 
     /* TYPOGRAPHY */
     --font-family-base: 'Outfit', sans-serif;
     --border-radius-base: 1rem;
+}
+
+/* DARK MODE OVERRIDES */
+.dark {
+    --slate-50: #020617;
+    --slate-100: #0f172a;
+    --slate-200: #1e293b;
+    --slate-300: #334155;
+    --slate-400: #64748b;
+    --slate-500: #94a3b8;
+    --slate-600: #cbd5e1;
+    --slate-700: #e2e8f0;
+    --slate-800: #f1f5f9;
+    --slate-900: #f8fafc;
+
+    --color-bg-main: var(--slate-50);
+    --color-surface: var(--slate-100);
+    --color-border: var(--slate-200);
+    --color-text-base: var(--slate-900);
+    --color-text-muted: var(--slate-500);
 }
 
 body {
@@ -40,6 +63,23 @@ body {
     background-color: var(--color-bg-main);
     color: var(--color-text-base);
     scroll-behavior: smooth;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.bg-surface {
+    background-color: var(--color-surface);
+}
+
+.text-main {
+    color: var(--color-text-base);
+}
+
+.text-muted {
+    color: var(--color-text-muted);
+}
+
+.border-main {
+    border-color: var(--color-border);
 }
 
 .btn-primary {
@@ -94,20 +134,70 @@ body {
 }
 
 /* MOBILE SIDEBAR OVERRIDES (Synced with Tailwind 'lg' 1024px) */
-@media (max-width: 1024px) {
+@media (max-width: 1023px) {
     .sidebar {
         position: fixed;
         height: 100vh;
         z-index: 60;
-        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1);
+        box-shadow: 10px 0 30px rgba(0, 0, 0, 0.2);
         width: 16rem;
         transform: translateX(0);
         left: 0;
     }
 
     .sidebar.collapsed {
-        display: none;
+        transform: translateX(-100%);
         pointer-events: none;
+    }
+}
+
+/* SIDEBAR TOOLTIPS & HOVER BEHAVIOR */
+@media (min-width: 1024px) {
+
+    /* Restore scroll and fix overlap */
+    .sidebar.collapsed nav {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+    }
+
+    /* Elegant Expand on Hover (Mini-Drawer) */
+    .sidebar.collapsed:hover {
+        width: 16rem;
+        z-index: 100;
+        box-shadow: 15px 0 40px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Show labels when sidebar is hovered even if collapsed */
+    .sidebar.collapsed:hover .nav-label,
+    .sidebar.collapsed:hover .branding-text {
+        display: block;
+        animation: fadeIn 0.3s ease-in-out;
+    }
+
+    /* Adjust button alignment when expanded from collapsed state */
+    .sidebar.collapsed:hover button {
+        justify-content: flex-start;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+        gap: 0.75rem;
+    }
+
+    .sidebar.collapsed:hover .sidebar-header {
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+        justify-content: flex-start;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
     }
 }
 
@@ -347,9 +437,43 @@ th {
 
 /* Menu flutuante do usuário - Desktop */
 @media (min-width: 1025px) {
+
+    /* Posicionamento padrão em desktop para modo público */
+    .dropdown-menu-responsive {
+        position: absolute !important;
+    }
+
+    /* Menu do usuário no modo público (desktop) */
+    .public-user-menu {
+        position: fixed !important;
+        top: 3.5rem !important;
+        /* Próximo ao avatar na navbar sticky */
+        right: 1.5rem !important;
+        left: auto !important;
+        min-width: 256px !important;
+        max-height: calc(100vh - 8rem) !important;
+        animation: fadeIn 0.2s ease forwards !important;
+    }
+
+    /* Menu do usuário no modo público - FIXO em relação à tela */
+    .public-user-menu-fixed {
+        position: fixed !important;
+        top: 4.5rem !important;
+        /* Ajustado para a altura do header público */
+        right: 1.5rem !important;
+        left: auto !important;
+        min-width: 256px !important;
+        max-height: calc(100vh - 6rem) !important;
+        overflow-y: auto !important;
+        animation: fadeIn 0.2s ease forwards !important;
+        box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.2) !important;
+    }
+
+    /* Menu do usuário no modo admin (desktop) */
     .admin-user-menu-floating {
         position: fixed !important;
-        top: 6rem !important;
+        top: 5.5rem !important;
+        /* Logo abaixo do header do admin (h-20 = 5rem + pequeno espaço) */
         right: 1.5rem !important;
         left: auto !important;
         transform: none !important;
@@ -358,6 +482,12 @@ th {
         max-height: calc(100vh - 8rem) !important;
         animation: fadeIn 0.2s ease forwards !important;
     }
+
+    /* Ajuste para modo compacto no admin */
+    .is-compact .admin-user-menu-floating {
+        top: 4rem !important;
+        /* Ajuste para header compacto (3.5rem + pequeno espaço) */
+    }
 }
 
 @keyframes fadeIn {
@@ -365,37 +495,76 @@ th {
         opacity: 0;
         transform: scale(0.95);
     }
+
     to {
         opacity: 1;
         transform: scale(1);
     }
 }
 
+/* ====================================
+   ADMIN USER MENU (Desacoplado do menu público)
+   ==================================== */
+
+/* Desktop: Posicionamento fixo no canto superior direito */
+.admin-user-menu {
+    position: fixed;
+    top: 5.5rem;
+    right: 1.5rem;
+    z-index: 10000;
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    min-width: 256px;
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+    animation: fadeIn 0.2s ease forwards;
+}
+
+/* Ajuste para modo compacto */
+.is-compact .admin-user-menu {
+    top: 4rem;
+}
+
+/* Mobile: Action sheet estilo no centro inferior */
 @media (max-width: 1024px) {
+    .admin-user-menu {
+        position: fixed !important;
+        top: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        transform: none !important;
+        width: 100% !important;
+        max-width: none !important;
+        border-radius: 2rem 2rem 0 0 !important;
+        animation: slideUpActionSheet 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+        padding-bottom: env(safe-area-inset-bottom, 1rem) !important;
+    }
+
     .dropdown-menu-responsive {
         position: fixed !important;
-        bottom: 1rem !important;
-        /* Mais perto da base */
-        left: 50% !important;
-        right: auto !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
         top: auto !important;
-        transform: translateX(-50%) !important;
-        width: calc(100% - 1.5rem) !important;
-        /* Margens de 0.75rem nas laterais */
-        max-width: 520px !important;
+        transform: none !important;
+        width: 100% !important;
+        max-width: none !important;
         max-height: calc(100vh - 4rem) !important;
-        /* Scroll interno se necessário */
         overflow-y: auto !important;
         margin: 0 !important;
         animation: slideUpActionSheet 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
-        border-radius: 2rem !important;
-        box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5) !important;
+        border-radius: 2rem 2rem 0 0 !important;
+        box-shadow: 0 -10px 40px -10px rgba(0, 0, 0, 0.3) !important;
         z-index: 10001 !important;
         visibility: visible !important;
         display: block !important;
         opacity: 1 !important;
-        border: 1px solid rgba(0, 0, 0, 0.05) !important;
-        /* Sutil borda para contraste */
+        border: none !important;
+        border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
+        padding-bottom: env(safe-area-inset-bottom, 1rem) !important;
     }
 
     .admin-user-menu-floating {
@@ -416,7 +585,6 @@ th {
         left: 50% !important;
         right: auto !important;
         transform: translateX(-50%) !important;
-        /* Force neutral */
     }
 
     .dropdown-backdrop-responsive {
@@ -431,12 +599,12 @@ th {
 
 @keyframes slideUpActionSheet {
     from {
-        transform: translateX(-50%) translateY(100%) scale(0.95) !important;
+        transform: translateY(100%) !important;
         opacity: 0 !important;
     }
 
     to {
-        transform: translateX(-50%) translateY(0) scale(1) !important;
+        transform: translateY(0) !important;
         opacity: 1 !important;
     }
 }

@@ -1,0 +1,5 @@
+# Ignorar arquivos desnecessários na pasta do servidor
+node_modules/
+.git/
+.clasp.json
+.claspignore

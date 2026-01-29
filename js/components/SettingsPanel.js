@@ -5,15 +5,15 @@ window.SettingsPanel = {
             props: ['title', 'data', 'icon', 'canLimit'],
             components: { 'base-icon': window.BaseIcon },
             template: `
-                <div class="bg-white p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border border-brand-100 space-y-8 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
-                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-brand-50 pb-6 gap-4">
+                <div class="bg-surface p-6 md:p-10 rounded-[2rem] md:rounded-[2.5rem] border-main space-y-8 shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-main pb-6 gap-4">
                         <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-2xl bg-brand-50 text-primary flex items-center justify-center border border-brand-100 shadow-sm shrink-0">
+                            <div class="w-12 h-12 rounded-2xl bg-brand-50 text-primary flex items-center justify-center border-main shadow-sm shrink-0">
                                 <base-icon :name="icon || 'layout'" icon-class="w-6 h-6"></base-icon>
                             </div>
                             <div>
                                 <h3 class="text-lg font-bold text-brand-800 leading-tight">{{ title }}</h3>
-                                <p class="text-[10px] text-brand-400 uppercase font-bold tracking-widest mt-0.5">Configurações da Seção</p>
+                                <p class="text-[10px] text-brand-400 uppercase font-black tracking-[0.2em] mt-0.5">Configurações da Seção</p>
                             </div>
                         </div>
                         <div class="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
@@ -47,13 +47,13 @@ window.SettingsPanel = {
                         <!-- Conteúdo Base -->
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div class="space-y-2">
-                                <label class="block text-[10px] font-bold text-brand-400 uppercase ml-1">Título em Destaque</label>
-                                <input v-model="data.title" class="w-full p-4 bg-brand-50 border-none rounded-2xl focus:ring-2 focus:ring-primary-light outline-none transition-all text-brand-900 font-medium">
+                                <label class="block text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] ml-1">Título em Destaque</label>
+                                 <input v-model="data.title" class="w-full bg-brand-50/40 border border-brand-200/40 rounded-2xl px-5 py-4 text-sm font-bold text-brand-800 placeholder:text-brand-300 focus:bg-surface focus:ring-4 focus:ring-primary/10 transition-all outline-none">
                             </div>
                             <div class="space-y-2">
-                                <label class="block text-[10px] font-bold text-brand-400 uppercase ml-1">Ícone da Seção</label>
+                                <label class="block text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] ml-1">Ícone da Seção</label>
                                 <div class="flex gap-4 items-center">
-                                    <input v-model="data.icon" class="flex-1 p-4 bg-brand-50 border-none rounded-2xl focus:ring-2 focus:ring-primary-light outline-none transition-all text-brand-900 font-medium" placeholder="Ex: star, zap, users...">
+                                     <input v-model="data.icon" class="flex-1 bg-brand-50/40 border border-brand-200/40 rounded-2xl px-5 py-4 text-sm font-bold text-brand-800 placeholder:text-brand-300 focus:bg-surface focus:ring-4 focus:ring-primary/10 transition-all outline-none" placeholder="Ex: star, zap, users...">
                                     <div class="w-14 h-14 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg shadow-primary-light/20 transition-all shrink-0">
                                         <base-icon :name="data.icon || (data.icon === '' ? '' : (icon || 'layout'))" icon-class="w-6 h-6"></base-icon>
                                     </div>
@@ -62,15 +62,15 @@ window.SettingsPanel = {
                         </div>
 
                         <div class="space-y-2">
-                            <label class="block text-[10px] font-bold text-brand-400 uppercase ml-1">Subtítulo / Descrição</label>
-                            <textarea v-model="data.subtitle" rows="2" class="w-full p-4 bg-brand-50 border-none rounded-2xl focus:ring-2 focus:ring-primary-light outline-none transition-all text-brand-900 font-medium resize-none"></textarea>
+                            <label class="block text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] ml-1">Subtítulo / Descrição</label>
+                             <textarea v-model="data.subtitle" rows="2" class="w-full bg-brand-50/40 border border-brand-200/40 rounded-2xl px-5 py-4 text-sm font-bold text-brand-800 placeholder:text-brand-300 focus:bg-surface focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none"></textarea>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
                             <!-- Opções de Layout -->
                             <div class="space-y-2">
-                                <label class="block text-[10px] font-bold text-brand-400 uppercase ml-1">Cor de Fundo</label>
-                                <select v-model="data.bgColor" class="w-full p-4 bg-brand-50 border-none rounded-2xl focus:ring-2 focus:ring-primary-light outline-none transition-all text-brand-900 font-bold appearance-none cursor-pointer">
+                                <label class="block text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] ml-1">Cor de Fundo</label>
+                                 <select v-model="data.bgColor" class="w-full bg-brand-50/40 border border-brand-200/40 rounded-2xl px-5 py-4 text-sm font-bold text-brand-800 focus:bg-surface focus:ring-4 focus:ring-primary/10 transition-all appearance-none cursor-pointer outline-none">
                                     <option value="bg-white">Branco Puro</option>
                                     <option value="bg-brand-50">Cinza Suave (Brand 50)</option>
                                     <option value="bg-primary-light/10">Primária Ultra Leve</option>
@@ -78,8 +78,8 @@ window.SettingsPanel = {
                             </div>
                             <!-- Limite de Itens -->
                             <div v-if="canLimit" class="space-y-2">
-                                <label class="block text-[10px] font-bold text-brand-400 uppercase ml-1">Quantidade de Itens</label>
-                                <input type="number" v-model.number="data.itemsLimit" class="w-full p-4 bg-brand-50 border-none rounded-2xl focus:ring-2 focus:ring-primary-light outline-none transition-all text-brand-900 font-bold">
+                                <label class="block text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] ml-1">Quantidade de Itens</label>
+                                 <input type="number" v-model.number="data.itemsLimit" class="w-full bg-brand-50/40 border border-brand-200/40 rounded-2xl px-5 py-4 text-sm font-bold text-brand-800 focus:bg-surface focus:ring-4 focus:ring-primary/10 transition-all outline-none">
                             </div>
                         </div>
 
@@ -94,8 +94,8 @@ window.SettingsPanel = {
                                     </button>
                                 </div>
                                 <div v-if="data.ctaShow" class="space-y-4 animate-in fade-in duration-300">
-                                    <input v-model="data.ctaText" class="w-full p-3 bg-white border border-brand-100 rounded-xl text-xs font-medium" placeholder="Texto do Botão">
-                                    <input v-model="data.ctaLink" class="w-full p-3 bg-white border border-brand-100 rounded-xl text-xs font-medium" placeholder="Link/ID (Ex: #contato)">
+                                     <input v-model="data.ctaText" class="w-full bg-brand-50/40 border border-brand-200/40 rounded-xl px-4 py-3 text-xs font-bold text-brand-800 placeholder:text-brand-200/60 focus:bg-surface transition-all outline-none" placeholder="Texto do Botão">
+                                    <input v-model="data.ctaLink" class="w-full bg-brand-50/40 border border-brand-200/40 rounded-xl px-4 py-3 text-xs font-bold text-brand-800 placeholder:text-brand-200/60 focus:bg-surface transition-all outline-none" placeholder="Link/ID (Ex: #contato)">
                                 </div>
                             </div>
 
@@ -175,8 +175,8 @@ window.SettingsPanel = {
             
             <!-- SIDEBAR DE CONFIGURAÇÕES -->
             <aside v-show="!ui.isMobile || ui.adminMenuView" class="w-full lg:w-80 shrink-0 space-y-2 sticky top-24 animate-in fade-in zoom-in-95 duration-300">
-                <div class="bg-white/50 backdrop-blur-md rounded-3xl md:rounded-[2.5rem] border border-brand-100 p-3 shadow-sm">
-                    <div class="px-5 py-4 border-b border-brand-50 mb-2">
+                <div class="bg-surface/50 backdrop-blur-md rounded-3xl md:rounded-[2.5rem] border-main p-3 shadow-sm">
+                    <div class="px-5 py-4 border-b border-main mb-2">
                         <span class="text-[10px] font-bold text-brand-400 uppercase tracking-widest">Escolha o que editar</span>
                     </div>
                     
@@ -280,13 +280,13 @@ window.SettingsPanel = {
                 
                 <!-- TAB: Geral -->
                 <div v-show="activeTab === 'general'">
-                    <div class="bg-white p-6 md:p-10 rounded-3xl md:rounded-[2.5rem] border border-brand-100 space-y-12 shadow-sm">
+                    <div class="bg-surface p-6 md:p-10 rounded-3xl md:rounded-[2.5rem] border-main space-y-12 shadow-sm">
                         
                         <!-- Identidade Section -->
                         <div class="space-y-8">
-                            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-brand-50 pb-6 gap-4">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-main pb-6 gap-4">
                                 <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-2xl bg-brand-50 text-primary flex items-center justify-center border border-brand-100 shrink-0">
+                                    <div class="w-12 h-12 rounded-2xl bg-brand-50 text-primary flex items-center justify-center border-main shrink-0">
                                         <base-icon name="id-card" icon-class="w-6 h-6"></base-icon>
                                     </div>
                                     <h3 class="text-xl font-bold text-brand-800 tracking-tight">Identidade Visual</h3>
@@ -300,18 +300,56 @@ window.SettingsPanel = {
 
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div class="space-y-2">
-                                    <label class="block text-[10px] font-bold text-brand-400 uppercase ml-1">Nome do Ecossistema</label>
-                                    <input v-model="settings.appTitle" class="w-full p-4 bg-brand-50 border-none rounded-2xl focus:ring-2 focus:ring-primary-light outline-none transition-all text-brand-900 font-bold">
+                                    <label class="block text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] ml-1">Nome do Ecossistema</label>
+                                     <input v-model="settings.appTitle" class="w-full bg-brand-50/40 border border-brand-200/40 rounded-2xl px-5 py-4 text-sm font-bold text-brand-800 focus:bg-surface focus:ring-4 focus:ring-primary/10 transition-all outline-none">
                                 </div>
                                 <div class="space-y-2">
-                                    <label class="block text-[10px] font-bold text-brand-400 uppercase ml-1">Ícone Principal (Lucide)</label>
+                                    <label class="block text-[10px] font-black text-brand-400 uppercase tracking-[0.2em] ml-1">Ícone Principal (Lucide)</label>
                                     <div class="flex gap-4 items-center">
-                                        <input v-model="settings.brandIcon" class="flex-1 p-4 bg-brand-50 border-none rounded-2xl focus:ring-2 focus:ring-primary-light outline-none transition-all text-brand-900 font-bold" placeholder="clapperboard">
+                                         <input v-model="settings.brandIcon" class="flex-1 bg-brand-50/40 border border-brand-200/40 rounded-2xl px-5 py-4 text-sm font-bold text-brand-800 focus:bg-surface focus:ring-4 focus:ring-primary/10 transition-all outline-none" placeholder="clapperboard">
                                         <div class="w-14 h-14 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg shadow-primary-light/20 transition-all shrink-0">
                                             <base-icon :name="settings.brandIcon" icon-class="w-6 h-6"></base-icon>
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Modo de Exibição Section -->
+                        <div class="space-y-8 pt-4">
+                            <div class="flex items-center gap-4 border-b border-brand-50 pb-6">
+                                <div class="w-12 h-12 rounded-2xl bg-brand-50 text-indigo-500 flex items-center justify-center border border-brand-100">
+                                    <base-icon :name="settings.darkMode ? 'moon' : 'sun'" icon-class="w-6 h-6"></base-icon>
+                                </div>
+                                <h3 class="text-xl font-bold text-brand-800 tracking-tight">Modo de Exibição</h3>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <button @click="settings.darkMode = false" 
+                                    class="p-6 rounded-[2rem] border-2 transition-all flex items-center gap-4"
+                                    :class="!settings.darkMode ? 'border-primary bg-primary-light/5 shadow-lg shadow-primary/5' : 'border-brand-50 bg-white hover:border-brand-100'">
+                                    <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-500 flex items-center justify-center shadow-sm">
+                                        <base-icon name="sun" icon-class="w-6 h-6"></base-icon>
+                                    </div>
+                                    <div class="text-left">
+                                        <div class="text-sm font-bold text-brand-800">Modo Claro</div>
+                                        <div class="text-[10px] text-brand-400 font-bold uppercase tracking-widest">Interface Padrão</div>
+                                    </div>
+                                    <div v-if="!settings.darkMode" class="ml-auto text-primary"><base-icon name="check-circle" icon-class="w-5 h-5"></base-icon></div>
+                                </button>
+
+                                <button @click="settings.darkMode = true" 
+                                    class="p-6 rounded-[2rem] border-2 transition-all flex items-center gap-4"
+                                    :class="settings.darkMode ? 'border-primary bg-primary-light/5 shadow-lg shadow-primary/5' : 'border-brand-50 bg-white hover:border-brand-100'">
+                                    <div class="w-12 h-12 rounded-2xl bg-slate-800 text-indigo-300 flex items-center justify-center shadow-sm">
+                                        <base-icon name="moon" icon-class="w-6 h-6"></base-icon>
+                                    </div>
+                                    <div class="text-left">
+                                        <div class="text-sm font-bold text-brand-800">Modo Escuro</div>
+                                        <div class="text-[10px] text-brand-400 font-bold uppercase tracking-widest">Foco e Noite</div>
+                                    </div>
+                                    <div v-if="settings.darkMode" class="ml-auto text-primary"><base-icon name="check-circle" icon-class="w-5 h-5"></base-icon></div>
+                                </button>
                             </div>
                         </div>
 
@@ -427,8 +465,8 @@ window.SettingsPanel = {
 
                         <div v-if="settings.footer.show" class="space-y-8 animate-in fade-in duration-300">
                             <div class="space-y-2">
-                                <label class="block text-[10px] font-bold uppercase text-brand-400 ml-1">Texto de Copyright</label>
-                                <textarea v-model="settings.footer.text" rows="2" class="w-full p-4 bg-brand-50 border-none rounded-2xl focus:ring-2 focus:ring-primary-light outline-none transition-all text-brand-900 font-bold resize-none"></textarea>
+                                <label class="block text-[10px] font-black uppercase text-brand-400 tracking-[0.2em] ml-1">Texto de Copyright</label>
+                                 <textarea v-model="settings.footer.text" rows="2" class="w-full bg-brand-50/40 border border-brand-200/40 rounded-2xl px-5 py-4 text-sm font-bold text-brand-800 focus:bg-surface focus:ring-4 focus:ring-primary/10 transition-all outline-none resize-none"></textarea>
                             </div>
                         </div>
                         <div v-else class="py-8 text-center bg-brand-50/50 rounded-[2rem] border border-dashed border-brand-200">

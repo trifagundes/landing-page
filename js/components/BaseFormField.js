@@ -2,6 +2,9 @@ window.BaseFormField = {
     components: { 'base-icon': window.BaseIcon },
     props: ['field', 'modelValue', 'error', 'disabled', 'showPassword'],
     emits: ['update:modelValue', 'toggle-password', 'blur'],
+    created() {
+        this.window = window;
+    },
     methods: {
         updateValue(value) {
             let finalValue = value;
@@ -19,7 +22,7 @@ window.BaseFormField = {
     },
     template: `
     <div class="space-y-2">
-        <label class="block text-[10px] font-bold uppercase tracking-widest ml-1" 
+        <label class="block text-[10px] font-black uppercase tracking-[0.2em] ml-1" 
             :class="error ? 'text-danger' : 'text-brand-400'">
             {{ field.label }}<span v-if="field.required" class="text-danger ml-0.5">*</span>
         </label>
@@ -34,9 +37,9 @@ window.BaseFormField = {
                 @input="updateValue($event.target.value)"
                 @blur="handleBlur"
                 :disabled="disabled"
-                class="w-full p-4 bg-brand-50 border rounded-xl text-sm focus:bg-white focus:ring-4 outline-none transition-all font-medium text-brand-700 placeholder:text-brand-300 disabled:cursor-not-allowed"
                 :class="[
-                    error ? 'border-danger-light focus:border-danger focus:ring-danger/10' : 'border-transparent focus:border-primary-light focus:ring-primary/10',
+                    error ? 'border-danger-light focus:border-danger focus:ring-danger/10' : 'border-brand-200/40 focus:border-primary-light focus:ring-primary/10',
+                    'w-full bg-brand-50/40 border rounded-2xl px-5 py-4 text-sm font-bold text-brand-800 placeholder:text-brand-200/60 outline-none transition-all disabled:cursor-not-allowed',
                     { 'pl-10': field.type === 'currency' },
                     { 'pr-12': (field.type === 'password' || ['image', 'photo', 'imageUrl'].includes(field.key)) }
                 ]"
@@ -68,16 +71,16 @@ window.BaseFormField = {
                 @blur="handleBlur"
                 :disabled="disabled"
                 rows="4"
-            class="w-full p-4 bg-brand-50 border rounded-xl text-sm focus:bg-white focus:ring-4 outline-none transition-all font-medium text-brand-700 resize-none placeholder:text-brand-300 disabled:cursor-not-allowed"
-            :class="error ? 'border-danger-light focus:border-danger focus:ring-danger/10' : 'border-transparent focus:border-primary-light focus:ring-primary/10'"
+            class="w-full bg-brand-50/40 border rounded-2xl px-5 py-4 text-sm font-bold text-brand-800 placeholder:text-brand-200/60 outline-none transition-all resize-none disabled:cursor-not-allowed"
+            :class="error ? 'border-danger-light focus:border-danger focus:ring-danger/10' : 'border-brand-200/40 focus:border-primary-light focus:ring-primary/10'"
             :placeholder="'Digite ' + field.label.toLowerCase() + '...'"></textarea>
         <div v-else-if="field.type === 'select'" class="relative group">
             <select :value="modelValue"
                     @change="updateValue($event.target.value)"
                     @blur="handleBlur"
                     :disabled="disabled"
-                class="w-full p-4 bg-brand-50 border rounded-xl text-sm focus:bg-white focus:ring-4 outline-none transition-all font-medium text-brand-700 appearance-none cursor-pointer disabled:cursor-not-allowed"
-                :class="error ? 'border-danger-light focus:border-danger focus:ring-danger/10' : 'border-transparent focus:border-primary-light focus:ring-primary/10'">
+                class="w-full bg-brand-50/40 border rounded-2xl px-5 py-4 text-sm font-bold text-brand-800 outline-none transition-all appearance-none cursor-pointer disabled:cursor-not-allowed"
+                :class="error ? 'border-danger-light focus:border-danger focus:ring-danger/10' : 'border-brand-200/40 focus:border-primary-light focus:ring-primary/10'">
                 <option value="" disabled selected>Selecione {{ field.label }}</option>
                 <option v-for="opt in (field.options || [])" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
             </select>
@@ -88,23 +91,23 @@ window.BaseFormField = {
                     @input="updateValue($event.target.value.split(',').map(s => s.trim()).filter(Boolean))"
                     @blur="handleBlur"
                     :disabled="disabled"
-                class="w-full p-4 bg-brand-50 border rounded-xl text-sm focus:bg-white focus:ring-4 outline-none transition-all font-medium text-brand-700 placeholder:text-brand-300 disabled:cursor-not-allowed"
-                :class="error ? 'border-danger-light focus:border-danger focus:ring-danger/10' : 'border-transparent focus:border-primary-light focus:ring-primary/10'"
+                class="w-full bg-brand-50/40 border rounded-2xl px-5 py-4 text-sm font-bold text-brand-800 placeholder:text-brand-200/60 outline-none transition-all disabled:cursor-not-allowed"
+                :class="error ? 'border-danger-light focus:border-danger focus:ring-danger/10' : 'border-brand-200/40 focus:border-primary-light focus:ring-primary/10'"
                 placeholder="Separe por vírgulas (ex: Música, Dança)">
             <p class="text-[10px] text-brand-400 mt-1 ml-1 flex items-center gap-1">
                 <base-icon name="tag" icon-class="w-3 h-3"></base-icon> Separe múltiplos itens com vírgula
             </p>
         </div>
-        <div v-else-if="field.type === 'boolean'" class="flex items-center justify-between p-4 bg-brand-50 border rounded-xl"
-             :class="error ? 'border-danger-light' : 'border-transparent'">
-            <span class="text-sm font-medium text-brand-600">{{ modelValue ? 'Sim' : 'Não' }}</span>
+        <div v-else-if="field.type === 'boolean'" class="flex items-center justify-between p-5 bg-brand-50/40 border border-brand-200/40 rounded-2xl"
+             :class="error ? 'border-danger-light' : ''">
+            <span class="text-sm font-bold text-brand-800">{{ modelValue ? 'Sim' : 'Não' }}</span>
             <button type="button" 
                     @click="updateValue(!modelValue)"
                     :disabled="disabled"
-                    class="w-11 h-6 rounded-full relative transition-colors duration-200 focus:outline-none"
-                    :class="modelValue ? 'bg-primary' : 'bg-brand-300'">
+                    class="w-11 h-6 rounded-full relative transition-colors duration-200 focus:outline-none shadow-inner"
+                    :class="modelValue ? 'bg-primary' : 'bg-brand-200'">
                 <div class="w-4 h-4 bg-white rounded-full shadow-sm absolute top-1 left-1 transition-transform duration-200"
-                     :class="modelValue ? 'translate-x-5' : 'translate-x-0'"></div>
+                     :class="modelValue ? 'translate-x-[1.25rem]' : 'translate-x-0'"></div>
             </button>
         </div>
         <p v-if="field.hint" class="text-[10px] text-brand-400 mt-1 ml-1 flex items-center gap-1">

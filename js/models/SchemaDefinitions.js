@@ -9,6 +9,7 @@ window.DATA_MODELS = {
         groups: ['Informações Gerais', 'Impactos & Detalhes', 'Linguagens & Áreas'],
         fields: [
             { key: 'image', label: 'Capa', type: 'text', table: true, form: false, cols: 2, group: 'Informações Gerais' },
+            { key: 'osc_logo', label: 'Logotipo da OSC', type: 'text', table: false, form: false, cols: 2, group: 'Informações Gerais' },
             { key: 'title', label: 'Nome do Evento', type: 'text', table: true, form: true, required: true, cols: 2, group: 'Informações Gerais' },
             { key: 'date', label: 'Data', type: 'date', table: true, form: true, required: true, cols: 1, group: 'Informações Gerais' },
             { key: 'porte', label: 'Porte', type: 'select', table: true, form: true, options: [{ value: 'nacional', label: 'Nacional' }, { value: 'regional', label: 'Regional' }, { value: 'local', label: 'Local' }], cols: 1, group: 'Informações Gerais' },
@@ -81,6 +82,50 @@ window.DATA_MODELS = {
             { key: 'highlight', label: 'Destaque', type: 'boolean', table: true, form: true, cols: 1, group: 'Conteúdo & Contexto' }
         ]
     },
+    documents: {
+        singular: 'Documento',
+        plural: 'Documentos',
+        groups: ['Informações do Documento', 'Dados do Template'],
+        fields: [
+            { key: 'title', label: 'Título do Documento', type: 'text', table: true, form: true, required: true, cols: 2, group: 'Informações do Documento' },
+            {
+                key: 'template', label: 'Tipo de Documento', type: 'select', table: true, form: true, required: true, options: [
+                    { value: 'certificate', label: 'Certificado' },
+                    { value: 'report', label: 'Relatório de Evento' },
+                    { value: 'letter', label: 'Ofício' },
+                    { value: 'declaration', label: 'Declaração' },
+                    { value: 'memorandum', label: 'Memorando' }
+                ], cols: 1, group: 'Informações do Documento'
+            },
+            { key: 'generatedAt', label: 'Data de Geração', type: 'datetime', table: true, form: false, cols: 1, group: 'Informações do Documento' },
+            {
+                key: 'status', label: 'Status', type: 'select', table: true, form: true, options: [
+                    { value: 'draft', label: 'Rascunho' },
+                    { value: 'generated', label: 'Gerado' }
+                ], cols: 1, group: 'Informações do Documento'
+            },
+
+            // === CAMPOS ESPECÍFICOS: MEMORANDO ===
+            { key: 'memo_numero', label: 'Número do Memorando', type: 'text', table: false, form: true, cols: 1, group: 'Dados do Template', placeholder: 'Ex: 042/2024', showIf: (d) => d.template === 'memorandum' },
+            { key: 'memo_data', label: 'Data de Emissão', type: 'date', table: false, form: true, cols: 1, group: 'Dados do Template', showIf: (d) => d.template === 'memorandum' },
+            { key: 'memo_orgao', label: 'Órgão/Setor Emissor', type: 'text', table: false, form: true, cols: 2, group: 'Dados do Template', placeholder: 'Ex: Secretaria Municipal de Cultura', showIf: (d) => d.template === 'memorandum' },
+
+            { key: 'memo_dest_nome', label: 'Para (Destinatário)', type: 'text', table: false, form: true, cols: 1, group: 'Dados do Template', placeholder: 'Nome do destinatário', showIf: (d) => d.template === 'memorandum' },
+            { key: 'memo_dest_cargo', label: 'Cargo do Destinatário', type: 'text', table: false, form: true, cols: 1, group: 'Dados do Template', placeholder: 'Ex: Secretário de Educação', showIf: (d) => d.template === 'memorandum' },
+
+            { key: 'memo_rem_nome', label: 'De (Remetente)', type: 'text', table: false, form: true, cols: 1, group: 'Dados do Template', placeholder: 'Nome do remetente', showIf: (d) => d.template === 'memorandum' },
+            { key: 'memo_rem_cargo', label: 'Cargo do Remetente', type: 'text', table: false, form: true, cols: 1, group: 'Dados do Template', placeholder: 'Ex: Coordenador de Eventos', showIf: (d) => d.template === 'memorandum' },
+
+            { key: 'memo_assunto', label: 'Assunto/Referência', type: 'text', table: false, form: true, cols: 2, group: 'Dados do Template', placeholder: 'Descreva o assunto do memorando', showIf: (d) => d.template === 'memorandum' },
+            { key: 'memo_corpo', label: 'Mensagem', type: 'textarea', table: false, form: true, cols: 2, group: 'Dados do Template', placeholder: 'Digite o conteúdo do memorando...', showIf: (d) => d.template === 'memorandum' },
+            { key: 'memo_anexos', label: 'Anexos', type: 'textarea', table: false, form: true, cols: 2, group: 'Dados do Template', placeholder: 'Liste os documentos anexos (um por linha)', showIf: (d) => d.template === 'memorandum' },
+            { key: 'memo_assinantes', label: 'Assinantes', type: 'textarea', table: false, form: true, cols: 2, group: 'Dados do Template', placeholder: 'Nome e cargo dos assinantes (um por linha)', showIf: (d) => d.template === 'memorandum' },
+
+            // Campos dinâmicos por template (armazenados como JSON)
+            { key: 'templateData', label: 'Dados do Template', type: 'json', table: false, form: false, cols: 2, group: 'Dados do Template' },
+            { key: 'notes', label: 'Observações', type: 'textarea', table: false, form: true, cols: 2, group: 'Dados do Template' }
+        ]
+    },
     clipping: {
         singular: 'Matéria',
         plural: 'Clipping',
@@ -94,6 +139,150 @@ window.DATA_MODELS = {
             { key: 'url', label: 'Link da Matéria', type: 'text', table: false, form: true, cols: 2, group: 'Publicação & Links' },
             { key: 'highlight', label: 'Destaque', type: 'boolean', table: true, form: true, cols: 1, group: 'Publicação & Links' },
             { key: 'status', label: 'Status', type: 'select', table: true, form: true, options: [{ value: 'active', label: 'Ativo' }, { value: 'inactive', label: 'Inativo' }], cols: 1, group: 'Publicação & Links' }
+        ]
+    },
+
+    // ⭐ OSCs (Organizações da Sociedade Civil) - Lei 13.019
+    oscs: {
+        singular: 'OSC',
+        plural: 'OSCs Cadastradas',
+        groups: ['Dados Cadastrais', 'Representante Legal', 'Apresentação Institucional'],
+        fields: [
+            // DADOS CADASTRAIS
+            { key: 'image', label: 'Logotipo/Capa', type: 'text', table: true, form: false, cols: 2, group: 'Dados Cadastrais' },
+            {
+                key: 'nome',
+                label: 'Nome da OSC (Razão Social)',
+                type: 'text',
+                table: true,
+                form: true,
+                required: true,
+                cols: 2,
+                group: 'Dados Cadastrais',
+                placeholder: 'Ex: Instituto Cultural Raízes'
+            },
+            {
+                key: 'cnpj',
+                label: 'CNPJ',
+                type: 'text',
+                table: true,
+                form: true,
+                required: true,
+                cols: 1,
+                group: 'Dados Cadastrais',
+                placeholder: '00.000.000/0001-00',
+                mask: '##.###.###/####-##'
+            },
+            {
+                key: 'telefone',
+                label: 'Telefone',
+                type: 'text',
+                table: true,
+                form: true,
+                required: true,
+                cols: 1,
+                group: 'Dados Cadastrais',
+                placeholder: '(00) 0000-0000',
+                mask: '(##) #####-####'
+            },
+            {
+                key: 'email',
+                label: 'E-mail Institucional',
+                type: 'email',
+                table: true,
+                form: true,
+                required: true,
+                cols: 1,
+                group: 'Dados Cadastrais',
+                placeholder: 'contato@osc.org.br'
+            },
+            {
+                key: 'endereco',
+                label: 'Endereço Completo',
+                type: 'textarea',
+                table: false,
+                form: true,
+                required: true,
+                cols: 1,
+                rows: 3,
+                group: 'Dados Cadastrais',
+                placeholder: 'Logradouro, número, complemento, bairro, cidade/UF, CEP'
+            },
+
+            // REPRESENTANTE LEGAL
+            {
+                key: 'representante_nome',
+                label: 'Nome Completo do Representante Legal',
+                type: 'text',
+                table: false,
+                form: true,
+                required: true,
+                cols: 2,
+                group: 'Representante Legal',
+                placeholder: 'Nome conforme documento'
+            },
+            {
+                key: 'representante_cpf',
+                label: 'CPF',
+                type: 'text',
+                table: false,
+                form: true,
+                required: true,
+                cols: 1,
+                group: 'Representante Legal',
+                placeholder: '000.000.000-00',
+                mask: '###.###.###-##'
+            },
+            {
+                key: 'representante_rg',
+                label: 'RG e Órgão Expedidor',
+                type: 'text',
+                table: false,
+                form: true,
+                required: true,
+                cols: 1,
+                group: 'Representante Legal',
+                placeholder: 'Ex: 1234567 SSP/RS'
+            },
+            {
+                key: 'representante_cargo',
+                label: 'Cargo/Função',
+                type: 'text',
+                table: false,
+                form: true,
+                required: true,
+                cols: 2,
+                group: 'Representante Legal',
+                placeholder: 'Ex: Presidente'
+            },
+
+            // APRESENTAÇÃO INSTITUCIONAL
+            {
+                key: 'apresentacao',
+                label: 'Histórico, Missão e Visão',
+                type: 'textarea',
+                table: false,
+                form: true,
+                required: false,
+                cols: 2,
+                rows: 10,
+                group: 'Apresentação Institucional',
+                placeholder: 'Descreva a missão, visão, histórico e principais realizações da OSC para uso em planos de trabalho...'
+            },
+
+            {
+                key: 'status',
+                label: 'Status',
+                type: 'select',
+                table: true,
+                form: true,
+                options: [
+                    { value: 'active', label: 'Ativo' },
+                    { value: 'inactive', label: 'Inativo' }
+                ],
+                cols: 2,
+                group: 'Dados Cadastrais'
+            }
         ]
     },
 

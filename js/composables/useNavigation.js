@@ -50,6 +50,7 @@ window.useNavigation = function () {
             'team': 'Equipe do Governo',
             'testimonials': 'Depoimentos',
             'clipping': 'Clipping de Notícias',
+            'documents': 'Gerenciamento de Documentos',
             'dev': 'Ferramentas do Desenvolvedor'
         };
         return titles[router.current] || 'Portal';

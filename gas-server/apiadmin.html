@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cultura Viva API - Status</title>
+    <style>
+        :root { --primary: #2563eb; --success: #16a34a; --error: #dc2626; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; line-height: 1.6; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header h1 { margin: 0; color: var(--primary); }
+        .badge { background: #e0e7ff; color: var(--primary); padding: 4px 8px; border-radius: 4px; font-size: 0.875rem; font-weight: 600; }
+        .card { background: var(--card); border-radius: 12px; padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+        .card h2 { margin-top: 0; font-size: 1.25rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.75rem; margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; }
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; }
+        .status-item { background: #f8fafc; padding: 1rem; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .status-label { font-size: 0.875rem; color: #64748b; display: block; margin-bottom: 0.25rem; }
+        .status-value { font-weight: 600; font-size: 1.125rem; }
+        .ok { color: var(--success); }
+        .err { color: var(--error); }
+        .btn { background: var(--primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 6px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        code { background: #f1f5f9; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.9em; color: #475569; }
+        .footer { text-align: center; font-size: 0.875rem; color: #94a3b8; margin-top: 2rem; }
+        .login-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; align-items: center; justify-content: center; }
+        .login-card { width: 100%; max-width: 400px; }
+        .input-group { margin-bottom: 1rem; }
+        .input-group input { width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
+        
+        /* Swagger-like Styles */
+        .endpoint { border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 1rem; overflow: hidden; }
+        .endpoint-header { padding: 10px 15px; cursor: pointer; display: flex; align-items: center; gap: 10px; background: #f8fafc; user-select: none; }
+        .endpoint-header:hover { background: #f1f5f9; }
+        .method { font-weight: 800; font-size: 0.75rem; padding: 4px 8px; border-radius: 4px; color: white; min-width: 50px; text-align: center; }
+        .method.get { background-color: #61affe; }
+        .method.post { background-color: #49cc90; }
+        .method.delete { background-color: #f93e3e; }
+        .path { font-family: monospace; font-weight: 600; color: #3b4151; flex-grow: 1; }
+        .desc { font-size: 0.85rem; color: #94a3b8; }
+        .endpoint-body { padding: 15px; border-top: 1px solid #e2e8f0; display: none; background: white; }
+        .endpoint.open .endpoint-body { display: block; }
+        .json-input { width: 100%; height: 150px; font-family: monospace; padding: 10px; border: 1px solid #cbd5e1; border-radius: 4px; background: #1e293b; color: #f8fafc; margin-bottom: 10px; }
+        .response-box { background: #0f172a; color: #4ade80; padding: 10px; border-radius: 4px; font-family: monospace; white-space: pre-wrap; margin-top: 10px; display: none; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+    <!-- TELA DE LOGIN -->
+    <div id="loginScreen" class="login-overlay">
+        <div class="card login-card">
+            <div class="header">
+                <h1>Cultura Viva</h1>
+                <p>Acesso Restrito (Admin/Dev)</p>
+            </div>
+            <div class="input-group">
+                <input type="email" id="email" placeholder="Email do Administrador">
+            </div>
+            <div class="input-group">
+                <input type="password" id="password" placeholder="Senha">
+            </div>
+            <button onclick="doLogin()" class="btn" style="width: 100%" id="btnLogin">Entrar</button>
+            <p id="loginMsg" style="text-align: center; color: var(--error); margin-top: 1rem; font-size: 0.9rem;"></p>
+        </div>
+    </div>
+
+    <!-- DASHBOARD (Oculto inicialmente) -->
+    <div id="dashboardScreen" class="container" style="display: none;">
+        <div class="header">
+            <h1>Cultura Viva API</h1>
+            <p>Backend Server & Database Connector</p>
+            <span class="badge">v1.0.0</span>
+            <button onclick="doLogout()" style="background:none; border:none; color:var(--error); cursor:pointer; font-size:0.8rem; margin-left:10px; text-decoration:underline;">Sair</button>
+        </div>
+
+        <div class="card">
+            <h2>
+                Status do Sistema
+                <button onclick="checkHealth()" class="btn" style="padding: 4px 12px; font-size: 0.875rem;">Atualizar</button>
+            </h2>
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="status-label">Database (Sheets)</span>
+                    <span id="dbStatus" class="status-value">Verificando...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">File System (Drive)</span>
+                    <span id="driveStatus" class="status-value">Verificando...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Ambiente</span>
+                    <span class="status-value ok">Production</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>
+                Logs do Sistema
+                <button onclick="loadLogs()" class="btn" style="padding: 4px 12px; font-size: 0.875rem;">Atualizar</button>
+            </h2>
+            <div style="overflow-x: auto; max-height: 400px;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                    <thead style="position: sticky; top: 0; background: #fff; z-index: 10; box-shadow: 0 1px 2px rgba(0,0,0,0.1);">
+                        <tr style="text-align: left; color: #64748b;">
+                            <th style="padding: 12px 8px; font-weight: 600;">Data</th>
+                            <th style="padding: 12px 8px; font-weight: 600;">Usuário</th>
+                            <th style="padding: 12px 8px; font-weight: 600;">Ação</th>
+                            <th style="padding: 12px 8px; font-weight: 600;">Coleção</th>
+                            <th style="padding: 12px 8px; font-weight: 600;">Detalhes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTableBody">
+                        <tr><td colspan="5" style="padding: 20px; text-align: center; color: #94a3b8;">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Ferramentas de Diagnóstico</h2>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button onclick="runDiagnostics()" class="btn">Executar Testes</button>
+                <button onclick="testApiRoutes()" class="btn" style="background-color: #f59e0b;">Testar Rotas API</button>
+                <button onclick="resetDb()" class="btn" style="background-color: var(--error);">Resetar Banco de Dados</button>
+            </div>
+            <div id="console" style="background: #1e293b; color: #f8fafc; padding: 1rem; border-radius: 8px; margin-top: 1rem; display: none; font-family: monospace; white-space: pre-wrap; max-height: 300px; overflow-y: auto; font-size: 0.9em;"></div>
+        </div>
+
+        <!-- API PLAYGROUND (SWAGGER-LIKE) -->
+        <div class="card">
+            <h2>API Playground <small style="font-size:0.8rem; font-weight:normal; color:#64748b">Documentação Interativa</small></h2>
+            <div id="apiList"></div>
+        </div>
+
+        <!-- SECURITY TESTS CARD -->
+        <div class="card" style="border-left: 4px solid #dc2626;">
+            <h2>🛡️ Simulação de Ataques (Pentest)</h2>
+            <div class="status-grid">
+                <div class="status-item">
+                    <span class="status-label">Formula Injection (Sheets)</span>
+                    <p style="font-size:0.8rem; color:#64748b; margin:5px 0;">Tenta salvar <code>=1+1</code> no banco.</p>
+                    <button onclick="runSecurityTest('formula')" class="btn" style="background:#ef4444; width:100%;">Testar Injeção</button>
+                    <div id="res-formula" class="response-box" style="display:none; margin-top:10px"></div>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">Brute Force (Login)</span>
+                    <p style="font-size:0.8rem; color:#64748b; margin:5px 0;">Simula 6 logins falhos seguidos.</p>
+                    <button onclick="runSecurityTest('brute')" class="btn" style="background:#ef4444; width:100%;">Testar Rate Limit</button>
+                    <div id="res-brute" class="response-box" style="display:none; margin-top:10px"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Configuração</h2>
+            <p><strong>Spreadsheet ID:</strong> <code id="ssId">...</code></p>
+            <p><strong>Script URL:</strong> <code id="scriptUrl">...</code></p>
+            <p><strong>Session Duration:</strong> <code>24 hours</code></p>
+        </div>
+
+        <div class="footer">
+            &copy; 2026 Cultura Viva System. Powered by Google Apps Script.
+        </div>
+    </div>
+
+    <script>
+        // Injeta ID do servidor
+        document.getElementById('ssId').textContent = "<?= getSpreadsheetId() ?>";
+        document.getElementById('scriptUrl').textContent = window.location.href;
+
+        let SESSION_TOKEN = null;
+
+        // Helper para chamadas ao backend (Promisify google.script.run)
+        function runBackend(funcName, ...args) {
+            return new Promise((resolve, reject) => {
+                google.script.run
+                    .withSuccessHandler(resolve)
+                    .withFailureHandler(reject)
+                    [funcName](...args);
+            });
+        }
+
+        function doLogin() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            const btn = document.getElementById('btnLogin');
+            const msg = document.getElementById('loginMsg');
+            
+            if(!email || !pass) { msg.textContent = 'Preencha todos os campos'; return; }
+
+            btn.disabled = true;
+            btn.textContent = 'Verificando...';
+            msg.textContent = '';
+
+            runBackend('handleLogin', email, pass)
+                .then(res => {
+                    if (res.status === 'success') {
+                        if (['admin', 'dev'].includes(res.user.role)) {
+                            SESSION_TOKEN = res.token;
+                            document.getElementById('loginScreen').style.display = 'none';
+                            document.getElementById('dashboardScreen').style.display = 'block';
+                            checkHealth();
+                            loadLogs();
+                        } else {
+                            msg.textContent = 'Acesso negado: Apenas Admins/Devs.';
+                        }
+                    } else {
+                        msg.textContent = 'Erro: ' + (res.message || 'Credenciais inválidas');
+                    }
+                })
+                .catch(err => {
+                    msg.textContent = 'Erro de conexão: ' + err;
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                    btn.textContent = 'Entrar';
+                });
+        }
+
+        function doLogout() {
+            SESSION_TOKEN = null;
+            document.getElementById('dashboardScreen').style.display = 'none';
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('password').value = '';
+        }
+
+        function checkHealth() {
+            const db = document.getElementById('dbStatus');
+            const drive = document.getElementById('driveStatus');
+            
+            db.textContent = '...';
+            drive.textContent = '...';
+            
+            runBackend('handleGetSystemInfo', SESSION_TOKEN)
+                .then(res => {
+                    if (res.database.status === 'connected') {
+                        db.innerHTML = `<a href="${res.database.url}" target="_blank" style="text-decoration:none; color:inherit" title="Abrir Planilha">✅ Conectado <small>↗</small></a>`;
+                        db.className = 'status-value ok';
+                    } else {
+                        db.textContent = '❌ Desconectado';
+                        db.className = 'status-value err';
+                    }
+                    
+                    if (res.drive.status === 'connected') {
+                        drive.innerHTML = `<a href="${res.drive.url}" target="_blank" style="text-decoration:none; color:inherit" title="Abrir Pasta">✅ Conectado <small>↗</small></a>`;
+                        drive.className = 'status-value ok';
+                    } else {
+                        drive.textContent = '❌ Erro';
+                        drive.className = 'status-value err';
+                    }
+                })
+                .catch(err => {
+                    db.textContent = '❌ Erro Fatal';
+                    db.className = 'status-value err';
+                    console.error(err);
+                });
+        }
+
+        function log(msg) {
+            const c = document.getElementById('console');
+            c.style.display = 'block';
+            c.textContent = msg;
+        }
+
+        function loadLogs() {
+            const tbody = document.getElementById('logsTableBody');
+            tbody.innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center; color: #94a3b8;">Carregando...</td></tr>';
+            
+            runBackend('handleGetLogs', SESSION_TOKEN)
+                .then(logs => {
+                    if (!logs || logs.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" style="padding: 20px; text-align: center; color: #64748b;">Nenhum log encontrado.</td></tr>';
+                        return;
+                    }
+                    
+                    tbody.innerHTML = logs.map(log => {
+                        const date = new Date(log.timestamp).toLocaleString();
+                        let details = log.details;
+                        try {
+                             const parsed = JSON.parse(details);
+                             details = JSON.stringify(parsed).substring(0, 50) + (JSON.stringify(parsed).length > 50 ? '...' : ''); 
+                        } catch(e) {}
+                        
+                        return `
+                            <tr style="border-bottom: 1px solid #e2e8f0; hover:bg-gray-50;">
+                                <td style="padding: 8px; white-space: nowrap; color: #64748b;">${date}</td>
+                                <td style="padding: 8px; font-weight: 500;">${log.user}</td>
+                                <td style="padding: 8px;"><span class="badge" style="font-size: 0.75rem;">${log.action}</span></td>
+                                <td style="padding: 8px; color: #64748b;">${log.collection}</td>
+                                <td style="padding: 8px; font-family: monospace; font-size: 0.8em; color: #475569;" title="${String(log.details).replace(/"/g, '&quot;')}">${details}</td>
+                            </tr>
+                        `;
+                    }).join('');
+                })
+                .catch(err => {
+                    tbody.innerHTML = `<tr><td colspan="5" style="padding: 20px; text-align: center; color: #dc2626;">Erro ao carregar logs: ${err}</td></tr>`;
+                });
+        }
+
+        function runDiagnostics() {
+            log('Executando testes...');
+            runBackend('handleRunDiagnostics', SESSION_TOKEN)
+                .then(log)
+                .catch(e => log('Erro: ' + e));
+        }
+
+        function testApiRoutes() {
+            log('Iniciando teste de rotas API (CRUD)...');
+            runBackend('handleTestApiRoutes', SESSION_TOKEN)
+                .then(log)
+                .catch(e => log('Erro: ' + e));
+        }
+
+        function resetDb() {
+            if (!confirm('⚠️ PERIGO: Isso apagará TODOS os dados e restaurará o padrão de fábrica.\\n\\nDeseja continuar?')) return;
+            log('Resetando banco de dados... Aguarde...');
+            runBackend('handleDevReset', SESSION_TOKEN)
+                .then(res => {
+                    log('✅ ' + res.message);
+                    checkHealth();
+                })
+                .catch(e => log('Erro: ' + e));
+        }
+
+        // --- API PLAYGROUND LOGIC ---
+        
+        const endpoints = [
+            { method: 'POST', path: '?action=login', desc: 'Autenticar usuário', payload: { email: 'admin@cultura.gov.br', password: '123' } },
+            { method: 'GET', path: '?action=getData', desc: 'Ler coleção (Requer Token)', payload: { collection: 'events', id: '' } },
+            { method: 'POST', path: '?action=saveData', desc: 'Criar/Editar item (Requer Token)', payload: { collection: 'events', item: { title: 'Novo Evento Teste', date: '2026-12-31', status: 'draft' } } },
+            { method: 'POST', path: '?action=deleteData', desc: 'Deletar item (Requer Token)', payload: { collection: 'events', id: 'ID_DO_ITEM' } },
+            { method: 'POST', path: '?action=registerUser', desc: 'Registrar novo usuário (Público)', payload: { email: 'novo@email.com', password: '123', name: 'Teste' } }
+        ];
+
+        function renderPlayground() {
+            const container = document.getElementById('apiList');
+            endpoints.forEach((ep, index) => {
+                const div = document.createElement('div');
+                div.className = 'endpoint';
+                div.innerHTML = `
+                    <div class="endpoint-header" onclick="toggleEndpoint(${index})">
+                        <span class="method ${ep.method.toLowerCase()}">${ep.method}</span>
+                        <span class="path">${ep.path}</span>
+                        <span class="desc">${ep.desc}</span>
+                    </div>
+                    <div class="endpoint-body" id="body-${index}">
+                        <p style="margin-top:0; font-size:0.9rem; color:#64748b">Corpo da Requisição (JSON):</p>
+                        <textarea id="input-${index}" class="json-input">${JSON.stringify(ep.payload, null, 2)}</textarea>
+                        <button onclick="executeApi(${index}, '${ep.path}')" class="btn" style="padding: 6px 12px; font-size: 0.9rem;">Executar</button>
+                        <div id="response-${index}" class="response-box"></div>
+                    </div>`;
+                container.appendChild(div);
+            });
+        }
+
+        function toggleEndpoint(index) {
+            const el = document.getElementById('body-' + index).parentElement;
+            el.classList.toggle('open');
+        }
+
+        function executeApi(index, path) {
+            const input = document.getElementById('input-' + index);
+            const respBox = document.getElementById('response-' + index);
+            const action = path.split('=')[1];
+            
+            respBox.style.display = 'block';
+            respBox.textContent = 'Processando...';
+            
+            try {
+                const payload = JSON.parse(input.value);
+                const request = { action: action, payload: payload, token: SESSION_TOKEN };
+                google.script.run
+                    .withSuccessHandler(res => {
+                        respBox.textContent = JSON.stringify(res, null, 2);
+                        if(res.status === 'error') respBox.style.color = '#f87171'; else respBox.style.color = '#4ade80';
+                    })
+                    .withFailureHandler(err => {
+                        respBox.textContent = 'Erro Fatal: ' + err;
+                        respBox.style.color = '#f87171';
+                    })
+                    .handleApiSimulation(request);
+            } catch (e) {
+                respBox.textContent = 'JSON Inválido: ' + e.message;
+                respBox.style.color = '#f87171';
+            }
+        }
+
+        function runSecurityTest(type) {
+            const box = document.getElementById('res-' + type);
+            box.style.display = 'block';
+            box.textContent = 'Executando ataque simulado...';
+            box.style.color = '#fbbf24';
+            
+            runBackend('handleSecurityTests', SESSION_TOKEN, type)
+                .then(res => {
+                    box.textContent = JSON.stringify(res, null, 2);
+                    if (res.safe) box.style.color = '#4ade80'; else box.style.color = '#f87171';
+                })
+                .catch(err => {
+                    box.textContent = 'Erro: ' + err;
+                    box.style.color = '#f87171';
+                });
+        }
+
+        renderPlayground();
+    </script>
+</body>
+</html>

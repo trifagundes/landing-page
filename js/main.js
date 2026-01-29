@@ -20,6 +20,13 @@ const BasePublicArchive = window.BasePublicArchive;
 const SettingsPanel = window.SettingsPanel;
 const BaseConfirmDialog = window.BaseConfirmDialog;
 const DropdownMenu = window.DropdownMenu;
+const AdminUserMenu = window.AdminUserMenu;
+const BaseAutoForm = window.BaseAutoForm;
+const BaseImagePreview = window.BaseImagePreview;
+
+// ✅ SOLID REFACTOR: Novos Componentes Reutilizáveis
+const StatsCard = window.StatsCard;
+const EventCard = window.EventCard;
 
 createApp({
     components: {
@@ -32,18 +39,26 @@ createApp({
         'base-public-archive': BasePublicArchive,
         'settings-panel': SettingsPanel,
         'base-confirm-dialog': BaseConfirmDialog,
-        'dropdown-menu': DropdownMenu
+        'dropdown-menu': DropdownMenu,
+        'admin-user-menu': AdminUserMenu,
+        // ✅ SOLID: Componentes Reutilizáveis
+        'stats-card': StatsCard,
+        'event-card': EventCard,
+        'base-auto-form': BaseAutoForm,
+        'base-image-preview': BaseImagePreview,
+        // ✅ Dedicated Views
+        'document-generator-view': window.DocumentGeneratorView
     },
     setup() {
         // 1. Initialize Composables
-        const { events, users, testimonials, team, clipping, isLoading, systemInfo, dataActions, processingIds } = useData();
+        const { events, users, testimonials, team, clipping, documents, oscs, isLoading, systemInfo, dataActions, processingIds } = useData();
         const { router, pageTitle } = useNavigation();
         const { settings, notifications, ui } = useUI(events);
         const { auth, can } = useAuth(router, notifications);
 
         // 2. Initialize Auth Guards & Hero Slider
         const authGuards = window.useAuthGuards(auth, router, notifications);
-        const heroSlider = window.useHeroSlider(events, settings);
+        const heroSlider = window.useHeroSlider(events, settings, ui);
 
         // STICKY NAVBAR LOGIC
         const isScrolled = ref(false);
@@ -66,12 +81,12 @@ createApp({
         ui.team = team;
         ui.clipping = clipping;
         ui.testimonials = testimonials;
+        ui.documents = documents;
+        ui.oscs = oscs;
 
         const nav = (route) => {
             router.push(route);
-            if (ui.isMobile) {
-                ui.isSidebarOpen = false;
-            }
+            ui.isSidebarOpen = false; // Always collapse sidebar on navigation
             // Reset administrative drill-down if navigation occurs
             ui.adminMenuView = true;
         };
@@ -80,6 +95,7 @@ createApp({
             authGuards.protectAdminAccess(context);
             router.pushContext(context);
             ui.userMenuOpen = false;
+            ui.isSidebarOpen = false; // Collapse sidebar on context change
             if (context === 'admin') {
                 router.push('dashboard');
             }
@@ -91,7 +107,16 @@ createApp({
         // SECURITY: Route Protection - Via authGuards
         watch(() => router.current, (newRoute) => {
             authGuards.protectRoute(newRoute);
+            ui.isSidebarOpen = false; // Always collapse sidebar on navigation (requested)
         }, { immediate: true });
+
+        // ✅ REFRESH DATA ON LOGIN
+        watch(() => auth.isAuthenticated, (isAuthed) => {
+            if (isAuthed) {
+                console.log("[App] Usuário autenticado, recarregando dados...");
+                dataActions.refresh();
+            }
+        });
 
         // Computed Data Views
         const activeEvents = computed(() => events.value.filter(e => e.status === 'active' && e.image));
@@ -243,7 +268,7 @@ createApp({
             navContext,
             globalError,
             // Data
-            events, users, testimonials, team, clipping, isLoading, systemInfo, processingIds,
+            events, users, testimonials, team, clipping, documents, oscs, isLoading, systemInfo, processingIds,
             // UI
             settings, notifications, ui, pageTitle, adminThemeClass, showMaintenanceBlock,
             // Auth

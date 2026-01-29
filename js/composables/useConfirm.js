@@ -18,6 +18,7 @@ window.useConfirm = function () {
         state.confirmLabel = options.confirmLabel || 'Confirmar';
         state.cancelLabel = options.cancelLabel || 'Cancelar';
         state.type = options.type || 'warning';
+        console.log('[useConfirm] Triggering confirm:', { title, state });
         state.show = true;
 
         return new Promise((resolve, reject) => {

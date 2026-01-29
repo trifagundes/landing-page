@@ -9,6 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
@@ -54,14 +55,17 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <!-- Vue.js 3 & Lucide Icons -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
 
-    <!-- Local Persistence & Themes -->
+    <!-- ✅ SOLID REFACTOR: Constantes e Utilitários -->
+    <script src="js/config/Constants.js"></script>
     <script src="js/config/Themes.js"></script>
-    <script src="js/services/LocalStorageDB.js"></script>
+
+    <!-- Services -->
 </head>
 
 <body>
@@ -74,8 +78,9 @@
 
         <!-- 6.2 MODO MANUTENÇÃO (BLOQUEIO PÚBLICO) -->
         <div v-if="showMaintenanceBlock"
-            class="fixed inset-0 z-[2000] bg-white flex flex-col items-center justify-center p-6 text-center">
-            <div class="w-20 h-20 bg-warning-light text-warning rounded-full flex items-center justify-center mb-6">
+            class="fixed inset-0 z-[2000] bg-surface flex flex-col items-center justify-center p-6 text-center">
+            <div
+                class="w-20 h-20 bg-warning-light text-warning rounded-full flex items-center justify-center mb-6 border-main">
                 <base-icon name="wrench" icon-class="w-10 h-10"></base-icon>
             </div>
             <h1 class="text-3xl font-bold mb-2">Página em Manutenção</h1>
@@ -86,21 +91,53 @@
                 Administrativo</button>
         </div>
 
-        <!-- 4.3 SISTEMA GLOBAL DE NOTIFICAÇÕES (COM PROGRESS BAR) -->
+        <!-- 4.3 SISTEMA GLOBAL DE NOTIFICAÇÕES (NOTIFICAÇÕES NO TOPO) -->
         <div class="fixed top-6 right-6 z-[9999] flex flex-col gap-3 pointer-events-none">
             <transition-group name="fade">
                 <div v-for="toast in notifications.toasts" :key="toast.id"
-                    class="pointer-events-auto px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 border bg-white relative overflow-hidden system-toast"
-                    :class="toast.type === 'success' ? 'border-success-light text-success' : 'border-danger-light text-danger'">
-                    <div class="p-2 rounded-lg"
-                        :class="toast.type === 'success' ? 'bg-success-light' : 'bg-danger-light'">
-                        <base-icon :name="toast.type === 'success' ? 'check-circle' : 'alert-circle'"
-                            icon-class="w-5 h-5"></base-icon>
+                    class="pointer-events-auto px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 border-main bg-surface relative overflow-hidden system-toast min-w-[320px] group/toast"
+                    :class="{
+                        'border-success-light text-success': toast.type === 'success',
+                        'border-danger-light text-danger': toast.type === 'danger' || toast.type === 'error',
+                        'border-warning-light text-warning': toast.type === 'warning',
+                        'border-info-light text-info': toast.type === 'info'
+                    }">
+
+                    <!-- Icon -->
+                    <div class="p-2 rounded-lg shrink-0" :class="{
+                            'bg-success-light': toast.type === 'success',
+                            'bg-danger-light': toast.type === 'danger' || toast.type === 'error',
+                            'bg-warning-light': toast.type === 'warning',
+                            'bg-info-light': toast.type === 'info'
+                        }">
+                        <base-icon :name="
+                            toast.type === 'success' ? 'check-circle' : 
+                            (toast.type === 'warning' ? 'alert-triangle' : 
+                            (toast.type === 'info' ? 'info' : 'alert-circle'))" icon-class="w-5 h-5"></base-icon>
                     </div>
-                    <span class="font-medium text-sm">{{ toast.message }}</span>
-                    <!-- PROGRESS BAR -->
-                    <div class="absolute bottom-0 left-0 h-1 bg-current opacity-30 transition-all"
-                        :style="{ width: toast.progress + '%' }"></div>
+
+                    <!-- Content -->
+                    <div class="flex-1 flex flex-col">
+                        <span class="font-bold text-[10px] uppercase tracking-widest opacity-60 mb-0.5">
+                            {{ toast.type === 'success' ? 'Sucesso' : (toast.type === 'warning' ? 'Atenção' :
+                            (toast.type === 'info' ? 'Sistema' : 'Erro')) }}
+                        </span>
+                        <span class="font-medium text-sm leading-tight">{{ toast.message }}</span>
+                    </div>
+
+                    <!-- Close Button -->
+                    <div class="shrink-0">
+                        <button @click="notifications.remove(toast.id)"
+                            class="w-10 h-10 rounded-full hover:bg-brand-50 flex items-center justify-center transition-colors group/close focus:outline-none">
+                            <base-icon name="x"
+                                icon-class="w-5 h-5 text-brand-300 group-hover/close:text-brand-600 transition-colors"></base-icon>
+                        </button>
+                    </div>
+
+                    <!-- PROGRESS BAR SYSTEM -->
+                    <div class="absolute bottom-0 left-0 w-full h-1 bg-brand-100/50"></div> <!-- Track -->
+                    <div class="absolute bottom-0 left-0 h-1 bg-current opacity-60"
+                        :style="{ width: toast.progress + '%' }"></div> <!-- Progress -->
                 </div>
             </transition-group>
         </div>
@@ -149,9 +186,9 @@
                                     class="flex items-center gap-3 hover:opacity-80 transition-opacity relative group">
                                     <div class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold border-2 shadow-lg shrink-0 relative transition-colors duration-300"
                                         :class="isScrolled ? 'bg-primary border-white' : 'bg-white/20 border-white/50 backdrop-blur-md'">
-                                        <img v-if="auth.user.photo" :src="auth.user.photo"
+                                        <img v-if="auth.user?.photo" :src="auth.user?.photo"
                                             class="w-full h-full object-cover rounded-full">
-                                        <span v-else>{{ auth.user.name.charAt(0) }}</span>
+                                        <span v-else>{{ auth.user?.name?.charAt(0) || '?' }}</span>
 
                                         <!-- OVERLAY NOTIFICATION PIN -->
                                         <span v-if="settings.unreadNotifications > 0"
@@ -159,58 +196,6 @@
                                     </div>
                                 </button>
 
-                                <!-- CONTEXTUAL USER MENU (PÚBLICO) -->
-                                <dropdown-menu v-if="auth.isAuthenticated && auth.user" 
-                                    :show="ui.userMenuOpen"
-                                    @update:show="ui.userMenuOpen = $event">
-                                    <!-- User Identity Header -->
-                                    <div class="px-5 py-4 bg-brand-50/50 border-b border-brand-100 flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold border border-white shrink-0 relative">
-                                            <img v-if="auth.user.photo" :src="auth.user.photo" class="w-full h-full object-cover rounded-full">
-                                            <span v-else>{{ auth.user.name.charAt(0) }}</span>
-                                        </div>
-                                        <div class="flex flex-col min-w-0">
-                                            <span class="text-sm font-bold text-brand-800 truncate text-left">{{ auth.user.name }}</span>
-                                            <span class="text-[10px] text-brand-400 font-medium truncate text-left">{{ auth.user.email }}</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Menu Items -->
-                                    <button v-if="['admin', 'dev', 'editor'].includes(auth.user?.role)"
-                                        @click="navContext('admin'); ui.userMenuOpen = false"
-                                        class="w-full text-left px-4 py-2.5 rounded-xl bg-primary-light text-primary font-bold text-xs flex items-center justify-between transition-colors hover:bg-primary/10 group cursor-pointer">
-                                        <div class="flex items-center gap-3">
-                                            <base-icon name="layout-dashboard" icon-class="w-4 h-4"></base-icon>
-                                            Painel Administrativo
-                                        </div>
-                                    </button>
-                                    <div v-if="['admin', 'dev', 'editor'].includes(auth.user?.role)" class="h-px bg-brand-50 my-0.5 mx-2"></div>
-
-                                    <button @click="modal.open('users', auth.user); ui.userMenuOpen = false"
-                                        class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-brand-50 text-brand-600 font-bold text-xs flex items-center gap-3 transition-colors cursor-pointer">
-                                        <base-icon name="user" icon-class="w-4 h-4 text-brand-400"></base-icon>
-                                        Meu Perfil
-                                    </button>
-
-                                    <button @click="settings.isCompactMode = !settings.isCompactMode"
-                                        class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-brand-50 text-brand-600 font-bold text-xs flex items-center justify-between group transition-colors cursor-pointer">
-                                        <div class="flex items-center gap-3">
-                                            <base-icon :name="settings.isCompactMode ? 'maximize' : 'minimize'" icon-class="w-4 h-4 text-brand-400 group-hover:text-primary"></base-icon>
-                                            <span>Modo Compacto</span>
-                                        </div>
-                                        <div class="w-8 h-4 rounded-full relative transition-colors" :class="settings.isCompactMode ? 'bg-primary' : 'bg-brand-200'">
-                                            <div class="absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all" :style="{ left: settings.isCompactMode ? '1.1rem' : '0.15rem' }"></div>
-                                        </div>
-                                    </button>
-
-                                    <div class="h-px bg-brand-50 my-0.5 mx-2"></div>
-
-                                    <button @click="auth.logout(); ui.userMenuOpen = false"
-                                        class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-danger-light text-danger font-bold text-xs flex items-center gap-3 transition-colors cursor-pointer">
-                                        <base-icon name="log-out" icon-class="w-4 h-4 text-danger"></base-icon>
-                                        Sair
-                                    </button>
-                                </dropdown-menu>
                             </div>
                         </div>
                         <button v-else @click="router.pushContext('auth')"
@@ -225,6 +210,67 @@
                 </div>
             </nav>
 
+            <!-- USER MENU (PÚBLICO) - Localizado fora do Header para evitar 'Fixed Trap' -->
+            <dropdown-menu v-if="ui.userMenuOpen && auth.isAuthenticated && router.currentContext === 'public'"
+                :show="ui.userMenuOpen" @update:show="ui.userMenuOpen = $event"
+                class="public-user-menu-fixed md:w-64 z-[10001]">
+
+                <!-- Header: User Identity -->
+                <div class="px-5 py-4 bg-brand-50/50 border-b border-brand-100 flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold border border-white shrink-0 relative">
+                        <img v-if="auth.user.photo" :src="auth.user.photo"
+                            class="w-full h-full object-cover rounded-full">
+                        <span v-else>{{ auth.user.name.charAt(0) }}</span>
+                    </div>
+                    <div class="flex flex-col min-w-0">
+                        <span class="text-sm font-bold text-brand-800 truncate text-left">{{ auth.user.name }}</span>
+                        <span class="text-[10px] text-brand-400 font-medium truncate text-left">{{ auth.user.email
+                            }}</span>
+                    </div>
+                </div>
+
+                <!-- Menu Items -->
+                <button v-if="['admin', 'dev', 'editor'].includes(auth.user?.role)"
+                    @click="navContext('admin'); ui.userMenuOpen = false"
+                    class="w-full text-left px-4 py-2.5 rounded-xl bg-primary-light text-primary font-bold text-xs flex items-center justify-between transition-colors hover:bg-primary/10 group cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <base-icon name="layout-dashboard" icon-class="w-4 h-4"></base-icon>
+                        Painel Administrativo
+                    </div>
+                </button>
+                <div v-if="['admin', 'dev', 'editor'].includes(auth.user?.role)" class="h-px bg-brand-50 my-0.5 mx-2">
+                </div>
+
+                <button @click="modal.open('users', auth.user); ui.userMenuOpen = false"
+                    class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-brand-50 text-brand-600 font-bold text-xs flex items-center gap-3 transition-colors cursor-pointer">
+                    <base-icon name="user" icon-class="w-4 h-4 text-brand-400"></base-icon>
+                    Meu Perfil
+                </button>
+
+                <button @click="settings.isCompactMode = !settings.isCompactMode"
+                    class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-brand-50 text-brand-600 font-bold text-xs flex items-center justify-between group transition-colors cursor-pointer">
+                    <div class="flex items-center gap-3">
+                        <base-icon :name="settings.isCompactMode ? 'maximize' : 'minimize'"
+                            icon-class="w-4 h-4 text-brand-400 group-hover:text-primary"></base-icon>
+                        <span>Modo Compacto</span>
+                    </div>
+                    <div class="w-8 h-4 rounded-full relative transition-colors"
+                        :class="settings.isCompactMode ? 'bg-primary' : 'bg-brand-200'">
+                        <div class="absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all"
+                            :style="{ left: settings.isCompactMode ? '1.1rem' : '0.15rem' }"></div>
+                    </div>
+                </button>
+
+                <div class="h-px bg-brand-50 my-0.5 mx-2"></div>
+
+                <button @click="auth.logout(); ui.userMenuOpen = false"
+                    class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-danger-light text-danger font-bold text-xs flex items-center gap-3 transition-colors cursor-pointer">
+                    <base-icon name="log-out" icon-class="w-4 h-4 text-danger"></base-icon>
+                    Sair
+                </button>
+            </dropdown-menu>
+
             <template v-if="!['all-events', 'clipping'].includes(router.current)">
                 <main v-if="settings.hero.show" id="inicio"
                     class="relative h-screen flex items-center justify-center overflow-hidden bg-brand-900 text-white pt-16 group/hero">
@@ -237,7 +283,7 @@
                             <div v-for="(event, index) in activeEvents" :key="event.id"
                                 v-show="index === ui.currentHeroSlide"
                                 class="absolute inset-0 transition-all duration-1000">
-                                <img :src="event.image || 'https://images.unsplash.com/photo-1459749411177-042180ec75c0'"
+                                <img :src="event.image || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30'"
                                     class="w-full h-full object-cover opacity-80 ken-burns" loading="lazy">
                             </div>
                         </transition-group>
@@ -251,7 +297,7 @@
                         <!-- Fallback (Empty Slider) -->
                         <div v-if="settings.hero.mode === 'slider' && activeEvents.length === 0"
                             class="absolute inset-0">
-                            <img src="https://images.unsplash.com/photo-1459749411177-042180ec75c0"
+                            <img src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30"
                                 class="w-full h-full object-cover opacity-80 ken-burns">
                         </div>
                     </div>
@@ -446,7 +492,6 @@
                         icon-class="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform"></base-icon>
                 </a>
             </div>
-        </section>
         </section> <!-- Fecha #eventos -->
 
         <!-- SEÇÃO CLIPPING: DESTAQUES MÍDIA (NOVA) -->
@@ -651,14 +696,13 @@
                     <div v-for="member in publicTeam.slice(0, settings.team.itemsLimit).sort((a, b) => (b.highlight === true) - (a.highlight === true))"
                         :key="member.id"
                         class="group text-center w-full md:w-[calc(50%-1rem)] lg:w-[calc(25%-1.5rem)] min-w-[200px] relative hover:bg-brand-50/50 rounded-3xl p-4 transition-colors duration-300">
-                        -
-                        - <!-- Admin Edit Button -->
-                        - <button v-if="auth.isAuthenticated && ['admin', 'dev'].includes(auth.user?.role)" -
-                            @click.stop="modal.open('team', member)" -
+                        <!-- Admin Edit Button -->
+                        <button v-if="auth.isAuthenticated && ['admin', 'dev'].includes(auth.user?.role)"
+                            @click.stop="modal.open('team', member)"
                             class="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-primary/10 hover:bg-primary text-primary hover:text-white rounded-full transition-all duration-300 opacity-0 group-hover:opacity-100 z-20"
-                            - title="Editar Membro">
-                            - <base-icon name="edit" icon-class="w-4 h-4"></base-icon>
-                            - </button>
+                            title="Editar Membro">
+                            <base-icon name="edit" icon-class="w-4 h-4"></base-icon>
+                        </button>
 
                         <!-- Avatar -->
                         <div class="relative w-40 h-40 mx-auto mb-6 rounded-full p-1 transition-all duration-500"
@@ -669,7 +713,7 @@
                             <!-- Inner Ring for clean separation -->
                             <div class="w-full h-full rounded-full overflow-hidden relative"
                                 :class="member.highlight ? 'border-4 border-white' : ''">
-                                <img :src="member.photo || 'https://images.unsplash.com/photo-1544005313-94ddf0286df2'"
+                                <img :src="member.photo || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30'"
                                     class="w-full h-full object-cover transition-all duration-500 transform group-hover:scale-110"
                                     :class="member.highlight ? '' : 'filter grayscale group-hover:grayscale-0'">
                             </div>
@@ -784,6 +828,9 @@
                     <span class="font-medium text-sm nav-label">Visão Geral</span>
                 </button>
 
+                <!-- SECTION DIVIDER -->
+                <div v-if="can('manage_events')" class="h-px bg-brand-600/40 mx-3 my-6"></div>
+
                 <button v-if="can('manage_events')" @click="nav('events')"
                     :class="router.current === 'events' ? 'bg-primary/10 text-primary' : 'text-brand-400 hover:bg-brand-800 hover:text-white'"
                     class="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all group mb-1">
@@ -808,21 +855,61 @@
                     <span class="font-medium text-sm nav-label">Clipping</span>
                 </button>
 
-                <!-- SECTION DIVIDER -->
-                <div v-if="can('manage_users')" class="h-px bg-brand-600/40 mx-3 my-6"></div>
-
-                <!-- SEÇÃO 2: ADMINISTRAÇÃO (Restrito) -->
-                <div v-if="can('manage_users')"
-                    class="text-[10px] font-bold text-brand-500 uppercase tracking-widest px-3 mb-2 nav-label">
-                    Administração</div>
-
-                <button v-if="can('manage_users')" @click="nav('team')"
+                <button v-if="can('manage_events')" @click="nav('team')"
                     :class="router.current === 'team' ? 'bg-primary/10 text-primary' : 'text-brand-400 hover:bg-brand-800 hover:text-white'"
                     class="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all group mb-1">
                     <base-icon name="briefcase"
                         icon-class="w-5 h-5 group-hover:scale-110 transition-transform"></base-icon>
                     <span class="font-medium text-sm nav-label">Equipe</span>
                 </button>
+
+                <!-- SECTION: OSCs -->
+                <button v-if="can('manage_events')" @click="nav('oscs')"
+                    :class="router.current === 'oscs' ? 'bg-primary/10 text-primary' : 'text-brand-400 hover:bg-brand-800 hover:text-white'"
+                    class="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all group mb-1">
+                    <base-icon name="building-2"
+                        icon-class="w-5 h-5 group-hover:scale-110 transition-transform"></base-icon>
+                    <span class="font-medium text-sm nav-label">OSCs</span>
+                </button>
+
+                <!-- SECTION DIVIDER -->
+                <div v-if="can('manage_events')" class="h-px bg-brand-600/40 mx-3 my-6"></div>
+
+                <!-- SEÇÃO: DOCUMENTOS -->
+                <div v-if="can('manage_events')"
+                    class="text-[10px] font-bold text-brand-500 uppercase tracking-widest px-3 mb-2 nav-label">
+                    Documentos</div>
+
+                <button v-if="can('manage_events')" @click="nav('documents')"
+                    :class="router.current === 'documents' ? 'bg-primary/10 text-primary' : 'text-brand-400 hover:bg-brand-800 hover:text-white'"
+                    class="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all group mb-1">
+                    <base-icon name="file-text"
+                        icon-class="w-5 h-5 group-hover:scale-110 transition-transform"></base-icon>
+                    <span class="font-medium text-sm nav-label">Gerador de PDF</span>
+                </button>
+
+                <!-- SECTION DIVIDER -->
+                <div v-if="can('manage_events')" class="h-px bg-brand-600/40 mx-3 my-6"></div>
+
+                <!-- SEÇÃO: CONFIGURAÇÕES (Landing Page) -->
+                <div v-if="can('manage_events')"
+                    class="text-[10px] font-bold text-brand-500 uppercase tracking-widest px-3 mb-2 nav-label">
+                    Configurações</div>
+
+                <button v-if="can('manage_events')" @click="nav('settings')"
+                    :class="router.current === 'settings' ? 'bg-primary/10 text-primary' : 'text-brand-400 hover:bg-brand-800 hover:text-white'"
+                    class="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all group mb-1">
+                    <base-icon name="settings" icon-class="w-5 h-5 group-hover:spin-slow"></base-icon>
+                    <span class="font-medium text-sm nav-label">Landing Page</span>
+                </button>
+
+                <!-- SECTION DIVIDER -->
+                <div v-if="can('manage_users')" class="h-px bg-brand-600/40 mx-3 my-6"></div>
+
+                <!-- SEÇÃO: ADMINISTRAÇÃO (Sistema - Controle de Acesso) -->
+                <div v-if="can('manage_users')"
+                    class="text-[10px] font-bold text-brand-500 uppercase tracking-widest px-3 mb-2 nav-label">
+                    Administração</div>
 
                 <button v-if="can('manage_users')" @click="nav('users')"
                     :class="router.current === 'users' ? 'bg-primary/10 text-primary' : 'text-brand-400 hover:bg-brand-800 hover:text-white'"
@@ -832,19 +919,12 @@
                 </button>
 
                 <!-- SECTION DIVIDER -->
-                <div v-if="can('manage_settings') || can('view_dev_tools')" class="h-px bg-brand-600/40 mx-3 my-6">
-                </div>
+                <div v-if="can('view_dev_tools')" class="h-px bg-brand-600/40 mx-3 my-6"></div>
 
-                <div v-if="can('manage_settings') || can('view_dev_tools')"
+                <!-- SEÇÃO: DESENVOLVEDOR -->
+                <div v-if="can('view_dev_tools')"
                     class="text-[10px] font-bold text-brand-500 uppercase tracking-widest px-3 mb-2 nav-label">
-                    Sistema</div>
-
-                <button v-if="can('manage_settings')" @click="nav('settings')"
-                    :class="router.current === 'settings' ? 'bg-primary/10 text-primary' : 'text-brand-400 hover:bg-brand-800 hover:text-white'"
-                    class="w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all group mb-1">
-                    <base-icon name="settings" icon-class="w-5 h-5 group-hover:spin-slow"></base-icon>
-                    <span class="font-medium text-sm nav-label">Configurações</span>
-                </button>
+                    Desenvolvedor</div>
 
                 <button v-if="can('view_dev_tools')" @click="nav('dev')"
                     :class="router.current === 'dev' ? 'bg-primary/10 text-primary' : 'text-brand-400 hover:bg-brand-800 hover:text-white'"
@@ -867,7 +947,7 @@
         <main class="bg-brand-50 min-h-screen transition-all duration-300"
             :class="{ 'lg:ml-[4.5rem]': !ui.isSidebarOpen, 'lg:ml-64': ui.isSidebarOpen }">
             <!-- HEADER -->
-            <header
+            <header v-show="!ui.hideHeader"
                 class="bg-white border-b border-brand-100 h-20 px-4 md:px-8 flex items-center justify-between sticky top-0 transition-all duration-300 bg-white/80 backdrop-blur-md"
                 :class="ui.userMenuOpen ? 'z-[10001]' : 'z-40'">
                 <div class="flex items-center gap-4">
@@ -893,12 +973,21 @@
                         <!-- AVATAR & MENU TRIGGER -->
                         <div @click="ui.userMenuOpen = !ui.userMenuOpen"
                             class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold shadow-lg shadow-primary-light/20 overflow-hidden text-sm cursor-pointer hover:shadow-primary/30 transition-all active:scale-95 ring-2 ring-transparent hover:ring-brand-100">
-                            <img v-if="auth.user.photo" :src="auth.user.photo" class="w-full h-full object-cover">
-                            <span v-else>{{ auth.user.name.charAt(0) }}</span>
+                            <img v-if="auth.user?.photo" :src="auth.user.photo" class="w-full h-full object-cover">
+                            <span v-else>{{ auth.user?.name?.charAt(0) || '?' }}</span>
                         </div>
                     </div>
                 </div>
             </header>
+
+            <!-- ADMIN USER MENU (Componente específico do admin) -->
+            <admin-user-menu v-if="auth.isAuthenticated && auth.user" :show="ui.userMenuOpen" :user="auth.user"
+                :current-context="router.currentContext" :is-compact-mode="settings.isCompactMode"
+                @close="ui.userMenuOpen = false" @navigate-context="navContext"
+                @open-profile="modal.open('users', auth.user); ui.userMenuOpen = false"
+                @toggle-compact="settings.isCompactMode = !settings.isCompactMode"
+                @logout="auth.logout(); ui.userMenuOpen = false">
+            </admin-user-menu>
 
             <!-- MAINTENANCE ALERT BANNER -->
             <div v-if="settings.isMaintenance"
@@ -916,8 +1005,8 @@
                     class="max-w-6xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     <!-- Stats Overview -->
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div
-                            class="bg-white p-6 rounded-[2rem] border border-brand-100 shadow-sm flex items-center gap-4">
+                        <div class="bg-white p-6 rounded-[2rem] border border-brand-100 shadow-sm flex items-center gap-4 transition-all"
+                            :class="{ 'card-processing': isLoading }">
                             <div
                                 class="w-12 h-12 rounded-2xl bg-primary-light text-primary flex items-center justify-center">
                                 <base-icon name="calendar" icon-class="w-6 h-6"></base-icon>
@@ -927,8 +1016,8 @@
                                 <div class="text-xs font-bold text-brand-400 uppercase">Eventos Ativos</div>
                             </div>
                         </div>
-                        <div
-                            class="bg-white p-6 rounded-[2rem] border border-brand-100 shadow-sm flex items-center gap-4">
+                        <div class="bg-white p-6 rounded-[2rem] border border-brand-100 shadow-sm flex items-center gap-4 transition-all"
+                            :class="{ 'card-processing': isLoading }">
                             <div
                                 class="w-12 h-12 rounded-2xl bg-success-light text-success flex items-center justify-center">
                                 <base-icon name="users" icon-class="w-6 h-6"></base-icon>
@@ -939,8 +1028,8 @@
                                 <div class="text-xs font-bold text-brand-400 uppercase">Público Total</div>
                             </div>
                         </div>
-                        <div
-                            class="bg-white p-6 rounded-[2rem] border border-brand-100 shadow-sm flex items-center gap-4">
+                        <div class="bg-white p-6 rounded-[2rem] border border-brand-100 shadow-sm flex items-center gap-4 transition-all"
+                            :class="{ 'card-processing': isLoading }">
                             <div
                                 class="w-12 h-12 rounded-2xl bg-warning-light text-warning flex items-center justify-center">
                                 <base-icon name="coins" icon-class="w-6 h-6"></base-icon>
@@ -951,8 +1040,8 @@
                                 <div class="text-xs font-bold text-brand-400 uppercase">Receita Est.</div>
                             </div>
                         </div>
-                        <div
-                            class="bg-white p-6 rounded-[2rem] border border-brand-100 shadow-sm flex items-center gap-4">
+                        <div class="bg-white p-6 rounded-[2rem] border border-brand-100 shadow-sm flex items-center gap-4 transition-all"
+                            :class="{ 'card-processing': isLoading }">
                             <div
                                 class="w-12 h-12 rounded-2xl bg-primary-light text-primary flex items-center justify-center">
                                 <base-icon name="newspaper" icon-class="w-6 h-6"></base-icon>
@@ -960,6 +1049,207 @@
                             <div>
                                 <div class="text-2xl font-bold text-brand-800">{{ publicClipping.length }}</div>
                                 <div class="text-xs font-bold text-brand-400 uppercase">Clipping</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- System Health Header (NEW) -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white p-4 rounded-3xl border border-brand-100 shadow-sm flex items-center justify-between group transition-all"
+                            :class="{ 'card-processing': isLoading }">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-success-light text-success flex items-center justify-center">
+                                    <base-icon name="database" icon-class="w-5 h-5"></base-icon>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-brand-400 uppercase tracking-widest">Planilha
+                                        Google</div>
+                                    <div class="text-sm font-bold text-brand-800 flex items-center gap-2">
+                                        Database
+                                        <a :href="systemInfo.database.url" target="_blank"
+                                            class="opacity-0 group-hover:opacity-100 transition-opacity text-primary">
+                                            <base-icon name="external-link" icon-class="w-3 h-3"></base-icon>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-bold"
+                                    :class="systemInfo.database.status === 'connected' ? 'text-success' : 'text-danger'">
+                                    {{ systemInfo.database.status === 'connected' ? 'ONLINE' : 'ERRO' }}
+                                </span>
+                                <span class="flex h-2.5 w-2.5 relative">
+                                    <span
+                                        class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                                        :class="systemInfo.database.status === 'connected' ? 'bg-success' : 'bg-danger'"></span>
+                                    <span class="relative inline-flex rounded-full h-2.5 w-2.5"
+                                        :class="systemInfo.database.status === 'connected' ? 'bg-success' : 'bg-danger'"></span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-3xl border border-brand-100 shadow-sm flex items-center justify-between group transition-all"
+                            :class="{ 'card-processing': isLoading }">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-primary-light text-primary flex items-center justify-center">
+                                    <base-icon name="folder" icon-class="w-5 h-5"></base-icon>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-brand-400 uppercase tracking-widest">Google
+                                        Drive</div>
+                                    <div class="text-sm font-bold text-brand-800 flex items-center gap-2">
+                                        Assets Storage
+                                        <a :href="systemInfo.drive.url" target="_blank"
+                                            class="opacity-0 group-hover:opacity-100 transition-opacity text-primary">
+                                            <base-icon name="external-link" icon-class="w-3 h-3"></base-icon>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-[10px] font-bold"
+                                    :class="systemInfo.drive.status === 'connected' ? 'text-success' : 'text-danger'">
+                                    {{ systemInfo.drive.status === 'connected' ? 'ONLINE' : 'ERRO' }}
+                                </span>
+                                <span class="flex h-2.5 w-2.5 relative">
+                                    <span
+                                        class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                                        :class="systemInfo.drive.status === 'connected' ? 'bg-success' : 'bg-danger'"></span>
+                                    <span class="relative inline-flex rounded-full h-2.5 w-2.5"
+                                        :class="systemInfo.drive.status === 'connected' ? 'bg-success' : 'bg-danger'"></span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-3xl border border-brand-100 shadow-sm flex items-center justify-between transition-all"
+                            :class="{ 'card-processing': isLoading }">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="w-10 h-10 rounded-xl bg-warning-light text-warning flex items-center justify-center">
+                                    <base-icon name="activity" icon-class="w-5 h-5"></base-icon>
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-brand-400 uppercase tracking-widest">Status
+                                        da API</div>
+                                    <div class="text-sm font-bold text-brand-800">Cultura Viva v2.0</div>
+                                </div>
+                            </div>
+                            <button @click="dataActions.refresh" :disabled="isLoading"
+                                class="p-2 hover:bg-brand-50 rounded-xl text-brand-400 transition-all active:scale-95 disabled:opacity-50"
+                                title="Atualizar dados e status">
+                                <base-icon name="refresh-cw" icon-class="w-4 h-4"
+                                    :class="isLoading ? 'animate-spin' : ''"></base-icon>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions & Recent Events -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+                        <!-- Quick Actions -->
+                        <div class="bg-white rounded-[2rem] border border-brand-100 shadow-sm p-6 transition-all"
+                            :class="{ 'card-processing': isLoading }">
+                            <h3 class="text-lg font-bold text-brand-800 mb-4 flex items-center gap-2">
+                                <base-icon name="zap" icon-class="w-5 h-5 text-primary"></base-icon>
+                                Ações Rápidas
+                            </h3>
+                            <div class="space-y-2">
+                                <button @click="modal.open('events')" :disabled="isLoading"
+                                    class="w-full text-left px-4 py-3 rounded-xl hover:bg-brand-50 text-brand-600 font-bold text-sm flex items-center gap-3 transition-colors disabled:opacity-50">
+                                    <base-icon name="plus-circle" icon-class="w-4 h-4 text-primary"></base-icon>
+                                    Novo Evento
+                                </button>
+                                <button @click="modal.open('users')" :disabled="isLoading"
+                                    class="w-full text-left px-4 py-3 rounded-xl hover:bg-brand-50 text-brand-600 font-bold text-sm flex items-center gap-3 transition-colors disabled:opacity-50">
+                                    <base-icon name="user-plus" icon-class="w-4 h-4 text-success"></base-icon>
+                                    Novo Usuário
+                                </button>
+                                <button @click="modal.open('clipping')" :disabled="isLoading"
+                                    class="w-full text-left px-4 py-3 rounded-xl hover:bg-brand-50 text-brand-600 font-bold text-sm flex items-center gap-3 transition-colors disabled:opacity-50">
+                                    <base-icon name="newspaper" icon-class="w-4 h-4 text-warning"></base-icon>
+                                    Novo Clipping
+                                </button>
+                                <button @click="router.push('settings')" :disabled="isLoading"
+                                    class="w-full text-left px-4 py-3 rounded-xl hover:bg-brand-50 text-brand-600 font-bold text-sm flex items-center gap-3 transition-colors disabled:opacity-50">
+                                    <base-icon name="settings" icon-class="w-4 h-4 text-brand-400"></base-icon>
+                                    Configurações
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Recent Events -->
+                        <div class="lg:col-span-2 bg-white rounded-[2rem] border border-brand-100 shadow-sm p-6 transition-all"
+                            :class="{ 'card-processing': isLoading }">
+                            <h3 class="text-lg font-bold text-brand-800 mb-4 flex items-center gap-2">
+                                <base-icon name="calendar" icon-class="w-5 h-5 text-primary"></base-icon>
+                                Eventos Recentes
+                            </h3>
+                            <div v-if="activeEvents.length > 0" class="space-y-3">
+                                <div v-for="event in activeEvents.slice(0, 3)" :key="event.id"
+                                    @click="!isLoading && modal.open('events', event)"
+                                    class="flex items-center gap-4 p-3 rounded-xl hover:bg-brand-50 transition-colors"
+                                    :class="isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'">
+                                    <div class="w-12 h-12 rounded-xl overflow-hidden shrink-0 bg-brand-100">
+                                        <img v-if="event.image" :src="event.image" class="w-full h-full object-cover">
+                                        <div v-else
+                                            class="w-full h-full flex items-center justify-center text-brand-400">
+                                            <base-icon name="calendar" icon-class="w-6 h-6"></base-icon>
+                                        </div>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="text-sm font-bold text-brand-800 truncate">{{ event.title }}</div>
+                                        <div class="text-xs text-brand-400 font-medium">{{
+                                            formatters.formatDate(event.date) }}
+                                        </div>
+                                    </div>
+                                    <div class="text-xs font-bold text-primary px-3 py-1 rounded-lg bg-primary-light">
+                                        {{ event.porte || 'Local' }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div v-else class="text-center py-8 text-brand-400">
+                                <base-icon name="calendar-x" icon-class="w-12 h-12 mx-auto mb-2 opacity-50"></base-icon>
+                                <p class="text-sm">Nenhum evento encontrado</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Users Overview -->
+                    <div class="bg-white rounded-[2rem] border border-brand-100 shadow-sm p-6 mt-6 transition-all"
+                        :class="{ 'card-processing': isLoading }">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-bold text-brand-800 flex items-center gap-2">
+                                <base-icon name="users" icon-class="w-5 h-5 text-success"></base-icon>
+                                Usuários do Sistema
+                            </h3>
+                            <button @click="router.push('users')" :disabled="isLoading"
+                                class="text-xs font-bold text-primary hover:text-primary-dark transition-colors disabled:opacity-50">
+                                Ver todos →
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="p-4 rounded-xl bg-brand-50 text-center">
+                                <div class="text-2xl font-bold text-brand-800">{{ users.length }}</div>
+                                <div class="text-xs text-brand-400 font-medium uppercase mt-1">Total</div>
+                            </div>
+                            <div class="p-4 rounded-xl bg-danger-light text-center">
+                                <div class="text-2xl font-bold text-danger">
+                                    {{ users.filter(u => u.role === 'dev').length }}
+                                </div>
+                                <div class="text-xs text-danger font-medium uppercase mt-1">Desenvolvedores</div>
+                            </div>
+                            <div class="p-4 rounded-xl bg-success-light text-center">
+                                <div class="text-2xl font-bold text-success">
+                                    {{ users.filter(u => u.role === 'admin').length }}
+                                </div>
+                                <div class="text-xs text-success font-medium uppercase mt-1">Admins</div>
+                            </div>
+                            <div class="p-4 rounded-xl bg-warning-light text-center">
+                                <div class="text-2xl font-bold text-warning">
+                                    {{ users.filter(u => u.role === 'editor').length }}
+                                </div>
+                                <div class="text-xs text-warning font-medium uppercase mt-1">Editores</div>
                             </div>
                         </div>
                     </div>
@@ -1086,6 +1376,14 @@
                     </div>
                 </div>
 
+                <!-- DEDICATED VIEW: DOCUMENTS -->
+                <div v-else-if="router.current === 'documents'">
+                    <document-generator-view :documents="documents" :oscs="oscs" :is-loading="isLoading"
+                        :processing-ids="processingIds" :data-actions="dataActions" :auth="auth" :ui="ui"
+                        @refresh="dataActions.refresh">
+                    </document-generator-view>
+                </div>
+
                 <!-- GENERIC CRUD VIEWS -->
                 <div v-else class="max-w-6xl mx-auto">
                     <base-data-table :title="pageTitle" :columns="columns[router.current] || []"
@@ -1197,8 +1495,8 @@
     <base-form-modal :show="modal.visible" :title="modal.title" :fields="modal.fields" v-model="modal.model"
         :saving="modal.isSaving" :collection="modal.collection" @close="modal.close()" @save="modal.save()">
 
-        <!-- SLOT: BEFORE FIELDS (CUSTOM HEADER FOR USERS) -->
-        <template v-slot:before-fields>
+        <!-- SLOT: SIDEBAR (CUSTOM HEADER FOR ALL COLLECTIONS) -->
+        <template v-slot:sidebar>
             <div v-if="modal.collection === 'users'" class="mb-8">
                 <!-- Decorative Banner -->
                 <div class="h-24 md:h-32 bg-primary rounded-2xl relative overflow-hidden -mx-2 -mt-2 shadow-inner">
@@ -1209,14 +1507,11 @@
                 <div class="flex flex-col items-center -mt-12 md:-mt-16 relative z-10">
                     <div
                         class="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-white shadow-2xl bg-white flex items-center justify-center overflow-hidden relative group">
-                        <!-- Live Image Preview -->
-                        <img v-if="modal.model.photo" :src="modal.model.photo"
-                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                        <!-- Fallback Initial -->
-                        <div v-else
-                            class="w-full h-full bg-brand-100 flex items-center justify-center text-4xl font-black text-brand-300">
-                            {{ modal.model.name ? modal.model.name.charAt(0).toUpperCase() : '?' }}
-                        </div>
+
+                        <base-image-preview :src="modal.model.photo" fallback-icon="user"
+                            :fallback-text="modal.model.name ? modal.model.name.charAt(0).toUpperCase() : '?'"
+                            img-class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        </base-image-preview>
 
                         <!-- Click Handler for Photo Update -->
                         <div @click="imageInputModal.open(modal.model.photo, (url) => { modal.model.photo = url; }, 'Alterar Foto de Perfil')"
@@ -1243,7 +1538,6 @@
                     </div>
                 </div>
             </div>
-            </div>
 
             <!-- PREMIUM HEADER FOR CLIPPING -->
             <div v-if="modal.collection === 'clipping'" class="mb-8">
@@ -1256,14 +1550,10 @@
                 <div class="flex flex-col items-center -mt-12 md:-mt-16 relative z-10">
                     <div
                         class="w-48 h-32 md:w-64 md:h-40 rounded-2xl border-4 border-white shadow-2xl bg-white flex items-center justify-center overflow-hidden relative group">
-                        <!-- Live Image Preview -->
-                        <img v-if="modal.model.image" :src="modal.model.image"
-                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                        <!-- Fallback Icon -->
-                        <div v-else
-                            class="w-full h-full bg-brand-100 flex items-center justify-center text-4xl font-black text-brand-300">
-                            <base-icon name="newspaper" icon-class="w-12 h-12"></base-icon>
-                        </div>
+                        <!-- REUSABLE IMAGE PREVIEW WITH LOADER -->
+                        <base-image-preview :src="modal.model.image" fallback-icon="newspaper"
+                            img-class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        </base-image-preview>
 
                         <!-- Preview Overlay -->
                         <div @click="imageInputModal.open(modal.model.image, (url) => { modal.model.image = url; }, 'Alterar Capa')"
@@ -1296,7 +1586,6 @@
                     </div>
                 </div>
             </div>
-            </div>
 
             <!-- PREMIUM HEADER FOR EVENTS -->
             <div v-if="modal.collection === 'events'" class="mb-8">
@@ -1309,19 +1598,31 @@
                 <div class="flex flex-col items-center -mt-12 md:-mt-16 relative z-10">
                     <div
                         class="w-48 h-32 md:w-64 md:h-40 rounded-2xl border-4 border-white shadow-2xl bg-white flex items-center justify-center overflow-hidden relative group">
-                        <!-- Live Image Preview -->
-                        <img v-if="modal.model.image" :src="modal.model.image"
-                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                        <!-- Fallback Icon -->
-                        <div v-else
-                            class="w-full h-full bg-brand-100 flex items-center justify-center text-4xl font-black text-brand-300">
-                            <base-icon name="calendar" icon-class="w-12 h-12"></base-icon>
-                        </div>
+                        <!-- REUSABLE IMAGE PREVIEW WITH LOADER -->
+                        <base-image-preview :src="modal.model.image" fallback-icon="calendar"
+                            img-class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        </base-image-preview>
 
                         <!-- Preview Overlay -->
                         <div @click="imageInputModal.open(modal.model.image, (url) => { modal.model.image = url; }, 'Alterar Capa')"
                             class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold uppercase tracking-widest backdrop-blur-sm cursor-pointer z-20">
                             Alterar Capa
+                        </div>
+
+                        <!-- OSC Logo Overlap (Consistência) -->
+                        <div class="absolute bottom-2 right-2 z-30 group/osc">
+                            <div
+                                class="w-12 h-12 rounded-xl bg-white shadow-xl flex items-center justify-center overflow-hidden border-2 border-white relative">
+
+                                <base-image-preview :src="modal.model.osc_logo" fallback-icon="building-2"
+                                    img-class="w-full h-full object-cover">
+                                </base-image-preview>
+
+                                <div @click.stop="imageInputModal.open(modal.model.osc_logo, (url) => { modal.model.osc_logo = url; }, 'Logotipo da OSC')"
+                                    class="absolute inset-0 bg-primary/80 opacity-0 group-hover/osc:opacity-100 transition-opacity flex items-center justify-center text-white cursor-pointer">
+                                    <base-icon name="camera" icon-class="w-3.5 h-3.5"></base-icon>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -1349,7 +1650,6 @@
                     </div>
                 </div>
             </div>
-            </div>
 
             <!-- PREMIUM HEADER FOR TEAM -->
             <div v-if="modal.collection === 'team'" class="mb-8">
@@ -1362,14 +1662,11 @@
                 <div class="flex flex-col items-center -mt-12 md:-mt-16 relative z-10">
                     <div
                         class="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-white shadow-2xl bg-white flex items-center justify-center overflow-hidden relative group">
-                        <!-- Live Image Preview -->
-                        <img v-if="modal.model.photo" :src="modal.model.photo"
-                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                        <!-- Fallback Initial -->
-                        <div v-else
-                            class="w-full h-full bg-brand-100 flex items-center justify-center text-4xl font-black text-brand-300">
-                            {{ modal.model.name ? modal.model.name.charAt(0).toUpperCase() : '?' }}
-                        </div>
+
+                        <base-image-preview :src="modal.model.photo" fallback-icon="user"
+                            :fallback-text="modal.model.name ? modal.model.name.charAt(0).toUpperCase() : '?'"
+                            img-class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        </base-image-preview>
 
                         <!-- Edit Hint Overlay -->
                         <div @click="imageInputModal.open(modal.model.photo, (url) => { modal.model.photo = url; }, 'Alterar Foto do Membro')"
@@ -1395,6 +1692,45 @@
                     </div>
                 </div>
             </div>
+
+            <!-- PREMIUM HEADER FOR OSCs -->
+            <div v-if="modal.collection === 'oscs'" class="mb-8">
+                <!-- Decorative OSC Banner -->
+                <div class="h-24 md:h-32 bg-brand-900 rounded-2xl relative overflow-hidden -mx-2 -mt-2 shadow-inner">
+                    <div class="absolute inset-0 bg-white/5 pattern-grid-lg opacity-20"></div>
+                </div>
+
+                <!-- Floating OSC Preview -->
+                <div class="flex flex-col items-center -mt-12 md:-mt-16 relative z-10">
+                    <div
+                        class="w-24 h-24 md:w-32 md:h-32 rounded-3xl border-4 border-white shadow-2xl bg-white flex items-center justify-center overflow-hidden relative group">
+
+                        <base-image-preview :src="modal.model.osc_logo" fallback-icon="building-2"
+                            img-class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        </base-image-preview>
+                    </div>
+
+                    <!-- OSC Identifiers -->
+                    <div class="mt-4 text-center">
+                        <h2 class="text-2xl font-black text-brand-800 tracking-tight px-4">
+                            {{ modal.model.nome || 'Nova Instituição' }}
+                        </h2>
+                        <div class="flex items-center justify-center gap-2 mt-2">
+                            <span v-if="modal.model.cnpj"
+                                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-50 text-brand-500 text-[10px] font-bold uppercase tracking-widest border border-brand-100">
+                                <base-icon name="file-text" icon-class="w-3 h-3"></base-icon>
+                                CNPJ: {{ modal.model.cnpj }}
+                            </span>
+                            <span
+                                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest"
+                                :class="modal.model.status === 'active' ? 'bg-success-light text-success' : 'bg-danger-light text-danger'">
+                                <base-icon :name="modal.model.status === 'active' ? 'check-circle' : 'slash'"
+                                    icon-class="w-3 h-3"></base-icon>
+                                {{ modal.model.status === 'active' ? 'Ativo' : 'Inativo' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- PREMIUM HEADER FOR TESTIMONIALS -->
@@ -1408,14 +1744,10 @@
                 <div class="flex flex-col items-center -mt-12 md:-mt-16 relative z-10">
                     <div
                         class="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-white shadow-2xl bg-white flex items-center justify-center overflow-hidden relative group">
-                        <!-- Live Image Preview -->
-                        <img v-if="modal.model.photo" :src="modal.model.photo"
-                            class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
-                        <!-- Fallback Icon -->
-                        <div v-else
-                            class="w-full h-full bg-brand-100 flex items-center justify-center text-4xl font-black text-brand-300">
-                            <base-icon name="quote" icon-class="w-8 h-8"></base-icon>
-                        </div>
+                        <!-- NEW: Reusable Image Preview with Loader -->
+                        <base-image-preview :src="modal.model.photo" fallback-icon="quote"
+                            img-class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                        </base-image-preview>
 
                         <!-- Preview Overlay -->
                         <div @click="imageInputModal.open(modal.model.photo, (url) => { modal.model.photo = url; }, 'Alterar Foto do Autor')"
@@ -1449,8 +1781,10 @@
                     </div>
                 </div>
             </div>
-            </div>
         </template>
+        <base-auto-form v-model="modal.model" :fields="modal.fields" :collection="modal.collection"
+            :saving="modal.isSaving" :attempted-save="modal.attemptedSave">
+        </base-auto-form>
 
     </base-form-modal>
 
@@ -1463,65 +1797,12 @@
         @close="mediaModal.close()"></base-media-modal>
 
     <!-- BACKDROP TO CLOSE MENU -->
-    <!-- (Backdrop is now handled by dropdown-menu component) -->
-
-    <!-- CONTEXTUAL USER MENU (FLOATING - BOTH PUBLIC & ADMIN) -->
-    <dropdown-menu v-if="ui.userMenuOpen && auth.isAuthenticated" 
-        :show="ui.userMenuOpen"
-        @update:show="ui.userMenuOpen = $event"
-        class="fixed top-24 right-6 md:w-64 z-[10001] pointer-events-auto">
-        <!-- Header: User Identity -->
-        <div class="px-5 py-4 bg-brand-50/50 border-b border-brand-100 flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold border border-white shrink-0 relative">
-                <img v-if="auth.user.photo" :src="auth.user.photo" class="w-full h-full object-cover rounded-full">
-                <span v-else>{{ auth.user.name.charAt(0) }}</span>
-            </div>
-            <div class="flex flex-col min-w-0">
-                <span class="text-sm font-bold text-brand-800 truncate text-left">{{ auth.user.name }}</span>
-                <span class="text-[10px] text-brand-400 font-medium truncate text-left">{{ auth.user.email }}</span>
-            </div>
-        </div>
-
-        <!-- Menu Items -->
-        <button v-if="['admin', 'dev', 'editor'].includes(auth.user?.role)"
-            @click="router.currentContext === 'admin' ? navContext('public') : navContext('admin'); ui.userMenuOpen = false"
-            class="w-full text-left px-4 py-2.5 rounded-xl bg-primary-light text-primary font-bold text-xs flex items-center justify-between transition-colors hover:bg-primary/10 group cursor-pointer">
-            <div class="flex items-center gap-3">
-                <base-icon :name="router.currentContext === 'admin' ? 'globe' : 'layout-dashboard'" icon-class="w-4 h-4"></base-icon>
-                {{ router.currentContext === 'admin' ? 'Ver Site Público' : 'Painel Administrativo' }}
-            </div>
-        </button>
-        <div v-if="['admin', 'dev', 'editor'].includes(auth.user?.role)" class="h-px bg-brand-50 my-0.5 mx-2"></div>
-
-        <button @click="modal.open('users', auth.user); ui.userMenuOpen = false"
-            class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-brand-50 text-brand-600 font-bold text-xs flex items-center gap-3 transition-colors cursor-pointer">
-            <base-icon name="user" icon-class="w-4 h-4 text-brand-400"></base-icon>
-            Meu Perfil
-        </button>
-
-        <button @click="settings.isCompactMode = !settings.isCompactMode"
-            class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-brand-50 text-brand-600 font-bold text-xs flex items-center justify-between group transition-colors cursor-pointer">
-            <div class="flex items-center gap-3">
-                <base-icon :name="settings.isCompactMode ? 'maximize' : 'minimize'" icon-class="w-4 h-4 text-brand-400 group-hover:text-primary"></base-icon>
-                <span>Modo Compacto</span>
-            </div>
-            <div class="w-8 h-4 rounded-full relative transition-colors" :class="settings.isCompactMode ? 'bg-primary' : 'bg-brand-200'">
-                <div class="absolute top-0.5 w-3 h-3 bg-white rounded-full transition-all" :style="{ left: settings.isCompactMode ? '1.1rem' : '0.15rem' }"></div>
-            </div>
-        </button>
-
-        <div class="h-px bg-brand-50 my-0.5 mx-2"></div>
-
-        <button @click="auth.logout(); ui.userMenuOpen = false"
-            class="w-full text-left px-4 py-2.5 rounded-xl hover:bg-danger-light text-danger font-bold text-xs flex items-center gap-3 transition-colors cursor-pointer">
-            <base-icon name="log-out" icon-class="w-4 h-4 text-danger"></base-icon>
-            Sair
-        </button>
-    </dropdown-menu>
+    <!-- (Backdrop is now handled by dropdown-menu and admin-user-menu components) -->
 
     <!-- APP ENTRY POINT -->
     <script src="js/utils/AppUtils.js"></script>
     <script src="js/utils/Formatters.js"></script>
+    <script src="js/services/GASAPIService.js"></script>
     <script src="js/services/DataService.js"></script>
     <script src="js/services/ExportService.js"></script>
     <script src="js/composables/useLocalStorage.js"></script>
@@ -1533,14 +1814,28 @@
     <script src="js/composables/useHeroSlider.js"></script>
     <script src="js/composables/useAuthGuards.js"></script>
     <script src="js/composables/useUI.js"></script>
+
+    <!-- ✅ SOLID REFACTOR: Novos Composables -->
+    <script src="js/composables/useValidation.js"></script>
+    <script src="js/composables/useErrorHandler.js"></script>
+    <script src="js/composables/useDataOperations.js"></script>
+
     <script src="js/composables/usePublicFilter.js"></script>
     <script src="js/composables/useTable.js"></script>
     <script src="js/composables/useModal.js"></script>
     <script src="js/composables/useConfirm.js"></script>
     <script src="js/composables/useColumnVisibility.js"></script>
     <script src="js/components/BaseIcon.js"></script>
+
+    <!-- ✅ SOLID REFACTOR: Componentes Reutilizáveis -->
+    <script src="js/components/StatsCard.js"></script>
+    <script src="js/components/EventCard.js"></script>
+
     <script src="js/components/DropdownMenu.js"></script>
+    <script src="js/components/AdminUserMenu.js"></script>
     <script src="js/components/BaseFormField.js"></script>
+    <script src="js/components/BaseImagePreview.js"></script>
+    <script src="js/components/BaseAutoForm.js"></script>
     <script src="js/components/BaseDataTable.js"></script>
     <script src="js/components/BaseLoginPage.js"></script>
     <script src="js/components/BaseFormModal.js"></script>
@@ -1552,6 +1847,10 @@
 
     <!-- Models -->
     <script src="js/models/SchemaDefinitions.js"></script>
+    <script src="js/models/DocumentTemplates.js"></script>
+
+    <!-- Dedicated Views -->
+    <script src="js/components/DocumentGeneratorView.js"></script>
 
     <script src="js/main.js"></script>
 </body>

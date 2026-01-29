@@ -1,3 +1,6 @@
+/**
+ * useModal - Refatorado para usar useValidation (DRY + SRP)
+ */
 window.useModal = function (dataActions, notifications, router) {
     const { reactive, computed, toRefs } = Vue;
 
@@ -7,8 +10,7 @@ window.useModal = function (dataActions, notifications, router) {
         collection: null,
         model: {},
         isSaving: false,
-        isEditing: false,
-        attemptedSave: false
+        isEditing: false
     });
 
     const fields = computed(() => {
@@ -34,25 +36,11 @@ window.useModal = function (dataActions, notifications, router) {
             ? `Editar ${model.singular}`
             : `Novo ${model.singular}`;
 
-        state.attemptedSave = false;
         state.model = item ? JSON.parse(JSON.stringify(item)) : {};
 
         if (collection === 'users' && state.isEditing && state.model) {
             state.model.password = '';
             state.model.password_confirmation = '';
-        }
-
-        // Pré-preenchimento para novos documentos
-        if (collection === 'documents' && !state.isEditing) {
-            const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-            const currentUser = window.App?.auth?.user;
-
-            state.model.status = 'draft'; // Novo documento começa como rascunho
-            state.model.memo_data = today; // Data de emissão pré-preenchida
-
-            if (currentUser) {
-                state.model.memo_rem_nome = currentUser.name || ''; // Remetente = usuário logado
-            }
         }
 
         state.visible = true;
@@ -63,25 +51,15 @@ window.useModal = function (dataActions, notifications, router) {
         state.model = {};
         state.collection = null;
         state.isEditing = false;
-        state.attemptedSave = false;
     }
 
     function validate() {
-        const currentFields = fields.value;
-        const errors = [];
+        // ✅ REFATORADO: Usa o composable de validação (DRY + SRP)
+        const validation = window.useValidation();
+        const result = validation.validateRequired(state.model, fields.value);
 
-        currentFields.forEach(field => {
-            if (field.required) {
-                const val = state.model[field.key];
-                if (val === undefined || val === null || (typeof val === 'string' && val.trim() === '')) {
-                    errors.push(field.label);
-                }
-            }
-        });
-
-        if (errors.length > 0) {
-            const msg = `Os seguintes campos são obrigatórios:\n- ${errors.join('\n- ')}`;
-            notifications.add(msg, "warning");
+        if (!result.isValid) {
+            notifications.add(result.message, "warning");
             return false;
         }
         return true;
@@ -90,7 +68,6 @@ window.useModal = function (dataActions, notifications, router) {
     async function save() {
         if (!state.collection) return;
 
-        state.attemptedSave = true;
         if (!validate()) return;
 
         if (router && router.currentContext === 'public' && state.model.status === 'inactive') {
@@ -112,6 +89,10 @@ window.useModal = function (dataActions, notifications, router) {
         try {
             await dataActions.save(state.collection, state.model, { showLoading: false });
             close();
+
+            const action = state.isEditing ? "atualizado" : "criado";
+            notifications.add(`Registro ${action} com sucesso!`, "success");
+
         } catch (error) {
             notifications.add(
                 error.message || "Erro ao salvar registro. Tente novamente.",

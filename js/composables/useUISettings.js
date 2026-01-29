@@ -2,13 +2,14 @@
  * useUISettings - Composable para configurações persistidas de UI
  * Responsável apenas por: carregar, salvar e gerenciar settings
  */
-window.useUISettings = function(events) {
+window.useUISettings = function (events) {
     const localStorage = window.useLocalStorage();
-    
+
     const UI_DEFAULTS = {
         appTitle: "Syldio | Gestão de Lazer",
         brandIcon: "clapperboard",
         activeTheme: "indigo",
+        darkMode: false,
         isMaintenance: false,
         isCompactMode: false,
         parallax: {
@@ -95,15 +96,16 @@ window.useUISettings = function(events) {
             ]
         }
     };
-    
+
     const settings = Vue.reactive({
         appTitle: localStorage.get('appTitle', UI_DEFAULTS.appTitle),
         brandIcon: localStorage.get('brandIcon', UI_DEFAULTS.brandIcon),
         activeTheme: localStorage.get('activeTheme', UI_DEFAULTS.activeTheme),
+        darkMode: localStorage.get('darkMode', UI_DEFAULTS.darkMode, 'bool'),
         isMaintenance: localStorage.get('isMaintenance', UI_DEFAULTS.isMaintenance, 'bool'),
         isCompactMode: localStorage.get('isCompactMode', UI_DEFAULTS.isCompactMode, 'bool'),
         unreadNotifications: 0,
-        
+
         parallax: { ...UI_DEFAULTS.parallax },
         hero: { ...UI_DEFAULTS.hero },
         stats: { ...UI_DEFAULTS.stats },
@@ -113,16 +115,17 @@ window.useUISettings = function(events) {
         team: { ...UI_DEFAULTS.team },
         footer: { ...UI_DEFAULTS.footer }
     });
-    
+
     // Salvar automaticamente quando settings mudam
     Vue.watch(() => settings.appTitle, (val) => localStorage.set('appTitle', val));
     Vue.watch(() => settings.activeTheme, (val) => localStorage.set('activeTheme', val));
+    Vue.watch(() => settings.darkMode, (val) => localStorage.set('darkMode', val));
     Vue.watch(() => settings.isMaintenance, (val) => localStorage.set('isMaintenance', val));
     Vue.watch(() => settings.isCompactMode, (val) => localStorage.set('isCompactMode', val));
-    
+
     // Deep watch para configurações de seções
     Vue.watch(() => settings.hero, (val) => localStorage.set('hero_config', JSON.stringify(val)), { deep: true });
     Vue.watch(() => settings.portfolio, (val) => localStorage.set('portfolio_config', JSON.stringify(val)), { deep: true });
-    
+
     return { settings };
 };

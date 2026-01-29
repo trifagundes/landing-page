@@ -36,7 +36,7 @@ window.BaseConfirmDialog = {
         }
     },
     template: `
-    <div v-if="show" class="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+    <div v-if="show" class="fixed inset-0 z-[99999] flex items-center justify-center p-4">
         <div class="absolute inset-0 bg-brand-900/40 backdrop-blur-sm transition-opacity" @click="$emit('cancel')"></div>
         <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md relative overflow-hidden animate-in zoom-in duration-300 border border-brand-100">
             <div class="p-8 text-center">

@@ -3,15 +3,16 @@ window.SCHEMAS = {
     user: { idField: 'id', collection: 'users' },
     testimonial: { idField: 'id', collection: 'testimonials' },
     team: { idField: 'id', collection: 'team' },
-    clipping: { idField: 'id', collection: 'clipping' }
+    clipping: { idField: 'id', collection: 'clipping' },
+    osc: { idField: 'id', collection: 'oscs' },
+    document: { idField: 'id', collection: 'documents' }
 };
 
 window.DataService = {
     async list(collection) {
         try {
             console.log(`[DataService] Fetching ${collection}...`);
-            const data = LocalStorageDB.getCollection(collection);
-            return data || [];
+            return await window.GASAPIService.list(collection);
         } catch (e) {
             console.error(`[DataService] List Error (${collection})`, e);
             return [];
@@ -22,7 +23,7 @@ window.DataService = {
         try {
             const idField = this._getIdField(collection);
             console.log("[DataService] Saving:", collection, item);
-            return LocalStorageDB.saveToCollection(collection, item, idField);
+            return await window.GASAPIService.save(collection, item);
         } catch (e) {
             console.error("DataService Save Error", e);
             throw e;
@@ -32,7 +33,7 @@ window.DataService = {
     async delete(collection, id) {
         try {
             const idField = this._getIdField(collection);
-            return LocalStorageDB.removeFromCollection(collection, id, idField);
+            return await window.GASAPIService.delete(collection, id);
         } catch (e) {
             console.error("DataService Delete Error", e);
             throw e;
@@ -41,12 +42,7 @@ window.DataService = {
 
     async bulkDelete(collection, ids) {
         try {
-            const idField = this._getIdField(collection);
-            let count = 0;
-            ids.forEach(id => {
-                if (LocalStorageDB.removeFromCollection(collection, id, idField)) count++;
-            });
-            return { success: true, count };
+            return await window.GASAPIService.bulkDelete(collection, ids);
         } catch (e) {
             console.error("DataService Bulk Delete Error", e);
             throw e;
@@ -55,11 +51,7 @@ window.DataService = {
 
     async bulkUpdateStatus(collection, ids, status) {
         try {
-            const idField = this._getIdField(collection);
-            ids.forEach(id => {
-                LocalStorageDB.saveToCollection(collection, { [idField]: id, status }, idField);
-            });
-            return { success: true };
+            return await window.GASAPIService.bulkUpdateStatus(collection, ids, status);
         } catch (e) {
             console.error("DataService Bulk Status Error", e);
             throw e;

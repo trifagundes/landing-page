@@ -47,8 +47,8 @@ window.BaseDataTable = {
         }
     },
     template: `
-    <div class="bg-white rounded-[2rem] shadow-sm border border-brand-100 animate-in fade-in duration-500">
-        <div class="p-8 border-b border-brand-50 space-y-6" :class="{ 'card-processing': isBusy }">
+    <div class="bg-surface rounded-[2rem] shadow-sm border-main animate-in fade-in duration-500">
+        <div class="p-8 border-b border-main space-y-6" :class="{ 'card-processing': isBusy }">
             <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                 <div>
                     <h2 class="text-xl font-bold text-brand-800 flex items-center gap-2">
@@ -62,7 +62,7 @@ window.BaseDataTable = {
                      <div class="relative">
                          <button @click="showColumnMenu = !showColumnMenu"
                             :disabled="isBusy"
-                            class="bg-white hover:bg-brand-50 text-brand-600 px-4 py-3 rounded-xl font-bold text-sm transition-all border border-brand-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                            class="bg-surface hover:bg-brand-50 text-brand-600 px-4 py-3 rounded-xl font-bold text-sm transition-all border-main flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                             title="Configurar Colunas">
                             <base-icon name="layout" icon-class="w-4 h-4"></base-icon>
                         </button>
@@ -87,7 +87,7 @@ window.BaseDataTable = {
                     <div class="relative">
                          <button @click="showExportMenu = !showExportMenu"
                             :disabled="isBusy"
-                            class="bg-white hover:bg-brand-50 text-brand-600 px-4 py-3 rounded-xl font-bold text-sm transition-all border border-brand-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                            class="bg-surface hover:bg-brand-50 text-brand-600 px-4 py-3 rounded-xl font-bold text-sm transition-all border-main flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                             title="Opções de Exportação">
                             <base-icon name="download" icon-class="w-4 h-4"></base-icon>
                         </button>
@@ -114,7 +114,7 @@ window.BaseDataTable = {
 
                     <button @click="$emit('refresh')" 
                         :disabled="isBusy || selected.length > 0"
-                        class="bg-white hover:bg-brand-50 text-brand-600 px-4 py-3 rounded-xl font-bold text-sm transition-all border border-brand-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                        class="bg-surface hover:bg-brand-50 text-brand-600 px-4 py-3 rounded-xl font-bold text-sm transition-all border-main flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
                         title="Atualizar dados">
                         <base-icon name="refresh-cw" :icon-class="['w-4 h-4', isBusy ? 'animate-spin' : '']"></base-icon>
                     </button>
@@ -128,11 +128,13 @@ window.BaseDataTable = {
 
             <div class="flex flex-col md:flex-row gap-4">
                 <div class="relative flex-1">
-                    <input v-model="search" :disabled="isBusy" placeholder="Buscar por qualquer termo..." class="pl-10 pr-4 py-3 bg-brand-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-primary-light outline-none w-full transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+                    <input v-model="search" type="text" :disabled="isBusy" placeholder="Buscar por qualquer termo..." 
+                        class="pl-10 pr-4 py-3 bg-brand-50/40 border border-brand-200/40 rounded-2xl text-sm font-bold text-brand-800 placeholder:text-brand-200/60 focus:bg-surface focus:ring-4 focus:ring-primary/10 outline-none w-full transition-all disabled:opacity-60 disabled:cursor-not-allowed">
                     <base-icon name="search" icon-class="w-4 h-4 text-brand-400 absolute left-3 top-1/2 -translate-y-1/2"></base-icon>
                 </div>
                 <div class="relative w-full md:w-48">
-                        <select v-model="perPage" :disabled="isBusy" class="w-full pl-4 pr-8 py-3 bg-brand-50 border-none rounded-xl text-sm focus:ring-2 focus:ring-primary-light outline-none appearance-none font-bold text-brand-600 cursor-pointer hover:bg-brand-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
+                    <select v-model="perPage" :disabled="isBusy" 
+                        class="w-full pl-4 pr-8 py-3 bg-brand-50/40 border border-brand-200/40 rounded-2xl text-sm focus:bg-surface focus:ring-4 focus:ring-primary/10 outline-none appearance-none font-bold text-brand-800 cursor-pointer hover:bg-brand-100 transition-colors disabled:opacity-60 disabled:cursor-not-allowed">
                         <option :value="5">Mostrar: 5</option>
                         <option :value="10">Mostrar: 10</option>
                         <option :value="20">Mostrar: 20</option>
@@ -216,6 +218,7 @@ window.BaseDataTable = {
                                         <span v-if="col.type === 'currency'" class="font-bold text-success">{{ formatters.formatCurrency(item[col.key]) }}</span>
                                         <span v-else-if="col.type === 'number'" class="font-mono text-brand-500">{{ formatters.formatNumber(item[col.key]) }}</span>
                                         <span v-else-if="col.type === 'date'">{{ formatters.formatDate(item[col.key]) }}</span>
+                                        <span v-else-if="col.type === 'datetime'" class="text-xs">{{ formatters.formatDateTime(item[col.key]) }}</span>
                                         <span v-else-if="col.type === 'select'">
                                             {{ col.options?.find(o => o.value === item[col.key])?.label || item[col.key] }}
                                         </span>
@@ -242,14 +245,14 @@ window.BaseDataTable = {
             </div>
         </div>
 
-        <div v-if="!loading && filteredItems.length > 0" class="p-6 border-t border-brand-50 bg-brand-50/50 flex justify-between items-center text-xs text-brand-500 font-medium" :class="{ 'opacity-50 pointer-events-none': isBusy }">
+        <div v-if="!loading && filteredItems.length > 0" class="p-6 border-t border-main bg-brand-50/50 flex justify-between items-center text-xs text-brand-500 font-medium" :class="{ 'opacity-50 pointer-events-none': isBusy }">
             <span>Mostrando {{ paginatedItems.length }} de {{ sortedItems.length }} registros</span>
             <div class="flex gap-2">
-                <button @click="currentPage--" :disabled="currentPage === 1 || isBusy" class="px-4 py-2 bg-white border border-brand-200 rounded-lg hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed font-bold transition-all shadow-sm">Anterior</button>
+                <button @click="currentPage--" :disabled="currentPage === 1 || isBusy" class="px-4 py-2 bg-surface border-main rounded-lg hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed font-bold transition-all shadow-sm">Anterior</button>
                 <div class="flex items-center gap-1 px-2">
                     <button v-for="p in totalPages" :key="p" @click="currentPage = p" :disabled="isBusy" class="w-8 h-8 rounded-lg flex items-center justify-center font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed" :class="currentPage === p ? 'bg-primary text-white shadow-md' : 'text-brand-600 hover:bg-brand-200'">{{ p }}</button>
                 </div>
-                <button @click="currentPage++" :disabled="currentPage === totalPages || isBusy" class="px-4 py-2 bg-white border border-brand-200 rounded-lg hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed font-bold transition-all shadow-sm">Próximo</button>
+                <button @click="currentPage++" :disabled="currentPage === totalPages || isBusy" class="px-4 py-2 bg-surface border-main rounded-lg hover:bg-brand-50 disabled:opacity-50 disabled:cursor-not-allowed font-bold transition-all shadow-sm">Próximo</button>
             </div>
         </div>
     </div>
