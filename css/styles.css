@@ -455,7 +455,6 @@ th {
         animation: fadeIn 0.2s ease forwards !important;
     }
 
-<<<<<<< HEAD
     /* Menu do usuário no modo público - FIXO em relação à tela */
     .public-user-menu-fixed {
         position: fixed !important;
@@ -468,24 +467,6 @@ th {
         overflow-y: auto !important;
         animation: fadeIn 0.2s ease forwards !important;
         box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.2) !important;
-=======
-    /* Menu do usuário no modo público - INLINE (relativo ao avatar) */
-    .public-user-menu-inline {
-        position: absolute !important;
-        top: calc(100% + 0.5rem) !important;
-        bottom: auto !important;
-        /* Abre para baixo do avatar */
-        right: 0 !important;
-        left: auto !important;
-        min-width: 256px !important;
-        max-height: calc(100vh - 5rem) !important;
-        /* Altura máxima para não sair da tela */
-        overflow-y: auto !important;
-        /* Scroll interno se necessário */
-        animation: fadeIn 0.2s ease forwards !important;
-        box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.2) !important;
-        /* Sombra para destacar */
->>>>>>> 8532de7f6c2a12b20c4083c1297af93d53b4e545
     }
 
     /* Menu do usuário no modo admin (desktop) */
@@ -547,24 +528,6 @@ th {
 }
 
 /* Mobile: Action sheet estilo no centro inferior */
-<<<<<<< HEAD
-=======
-@media (max-width: 1024px) {
-    .admin-user-menu {
-        position: fixed !important;
-        top: auto !important;
-        bottom: 1rem !important;
-        left: 50% !important;
-        right: auto !important;
-        transform: translateX(-50%) !important;
-        width: calc(100% - 1.5rem) !important;
-        max-width: 520px !important;
-        border-radius: 1.5rem !important;
-        animation: slideUpActionSheet 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
-    }
-}
-
->>>>>>> 8532de7f6c2a12b20c4083c1297af93d53b4e545
 @media (max-width: 1024px) {
     .admin-user-menu {
         position: fixed !important;

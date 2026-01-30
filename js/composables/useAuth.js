@@ -112,21 +112,13 @@ window.useAuth = function (router, notifications) {
 
         can(permission) {
             if (!this.isAuthenticated || !this.user) return false;
-<<<<<<< HEAD
             const permsSource = window.APP_CONSTANTS?.PERMISSIONS || {
-=======
-            const PERMISSIONS = {
->>>>>>> 8532de7f6c2a12b20c4083c1297af93d53b4e545
                 'dev': ['view_dashboard', 'manage_users', 'manage_events', 'manage_settings', 'view_dev_tools', 'manage_system'],
                 'admin': ['view_dashboard', 'manage_users', 'manage_events', 'manage_settings'],
                 'editor': ['view_dashboard', 'manage_events'],
                 'user': ['view_dashboard']
             };
-<<<<<<< HEAD
             const rolePerms = permsSource[this.user.role] || [];
-=======
-            const rolePerms = PERMISSIONS[this.user.role] || [];
->>>>>>> 8532de7f6c2a12b20c4083c1297af93d53b4e545
             return rolePerms.includes(permission);
         }
     });

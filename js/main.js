@@ -21,15 +21,12 @@ const SettingsPanel = window.SettingsPanel;
 const BaseConfirmDialog = window.BaseConfirmDialog;
 const DropdownMenu = window.DropdownMenu;
 const AdminUserMenu = window.AdminUserMenu;
-<<<<<<< HEAD
 const BaseAutoForm = window.BaseAutoForm;
 const BaseImagePreview = window.BaseImagePreview;
 
 // ✅ SOLID REFACTOR: Novos Componentes Reutilizáveis
 const StatsCard = window.StatsCard;
 const EventCard = window.EventCard;
-=======
->>>>>>> 8532de7f6c2a12b20c4083c1297af93d53b4e545
 
 createApp({
     components: {
@@ -43,7 +40,6 @@ createApp({
         'settings-panel': SettingsPanel,
         'base-confirm-dialog': BaseConfirmDialog,
         'dropdown-menu': DropdownMenu,
-<<<<<<< HEAD
         'admin-user-menu': AdminUserMenu,
         // ✅ SOLID: Componentes Reutilizáveis
         'stats-card': StatsCard,
@@ -52,9 +48,6 @@ createApp({
         'base-image-preview': BaseImagePreview,
         // ✅ Dedicated Views
         'document-generator-view': window.DocumentGeneratorView
-=======
-        'admin-user-menu': AdminUserMenu
->>>>>>> 8532de7f6c2a12b20c4083c1297af93d53b4e545
     },
     setup() {
         // 1. Initialize Composables
