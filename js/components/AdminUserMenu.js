@@ -31,11 +31,15 @@ window.AdminUserMenu = {
         
         <!-- Admin User Menu -->
         <div v-if="show" 
+<<<<<<< HEAD
             class="admin-user-menu overflow-hidden flex flex-col">
             <!-- Mobile Handle -->
             <div class="lg:hidden w-full flex justify-center pt-3 pb-1">
                 <div class="w-12 h-1.5 bg-brand-200 rounded-full opacity-50"></div>
             </div>
+=======
+            class="admin-user-menu">
+>>>>>>> 8532de7f6c2a12b20c4083c1297af93d53b4e545
             <!-- Header: User Identity -->
             <div class="px-5 py-4 bg-brand-50/50 border-b border-brand-100 flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-white font-bold border border-white shrink-0 relative">

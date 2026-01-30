@@ -3,8 +3,11 @@
  * Utiliza composables especializados (SRP): useUISettings, useUIState, useLocalStorage
  */
 window.useUI = function (events) {
+<<<<<<< HEAD
     const CONSTANTS = window.APP_CONSTANTS || {};
 
+=======
+>>>>>>> 8532de7f6c2a12b20c4083c1297af93d53b4e545
     // 1. Carregar settings via useUISettings (persist�ncia)
     const { settings } = window.useUISettings(events);
 
@@ -56,10 +59,13 @@ window.useUI = function (events) {
         window.AppUtils.applyTheme(newTheme);
     });
 
+<<<<<<< HEAD
     Vue.watch(() => settings.darkMode, (isDark) => {
         window.AppUtils.applyDarkMode(isDark);
     });
 
+=======
+>>>>>>> 8532de7f6c2a12b20c4083c1297af93d53b4e545
     // 6. Helper global para notifica��es
     window.notify = (title, msg, type = 'success') => {
         notifications.add(`${title}: ${msg}`, type);
